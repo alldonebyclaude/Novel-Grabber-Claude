@@ -3,6 +3,7 @@ package grabber;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Safelist;
+import grabber.formats.ChapterFiles;
 import system.Config;
 import system.init;
 import org.jsoup.nodes.Element;
@@ -64,6 +65,11 @@ public class Chapter implements Serializable {
 
         chapterContainer = null;
         status = 1; // Chapter was successfully downloaded
+
+        // Write the chapter file now, not after the whole download
+        if (ChapterFiles.isEnabled(novel)) {
+            new ChapterFiles(novel).writeChapter(this);
+        }
 
     }
 

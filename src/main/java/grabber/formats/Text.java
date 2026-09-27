@@ -6,7 +6,6 @@ import grabber.Novel;
 import grabber.NovelMetadata;
 import org.jsoup.Jsoup;
 import system.Config;
-import system.init;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -24,41 +23,20 @@ public class Text {
         String filename = setFilename();
         GrabberUtils.createDir(novel.saveLocation);
         GrabberUtils.info(novel.window,"Writing TXT...");
-        if (init.config.isSeparateChapters()) {
-            // Create dir for chapter files
-            String cleanFolderName = filename
-                    .replace("^\\.+", "")
-                    .replaceAll("[\\\\/:*?\"<>|]", "");
-            if (cleanFolderName.length() > 240) cleanFolderName = cleanFolderName.substring(0,240);
-            String saveLocation = novel.saveLocation + "/" + cleanFolderName;
-            GrabberUtils.createDir(saveLocation);
-
+        // One file per chapter is the "chapter files" option, which works for every output format
+        filename += ".txt";
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(novel.saveLocation + "/" + filename), StandardCharsets.UTF_8))) {
             for(Chapter chapter: novel.successfulChapters) {
-                try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                        new FileOutputStream(saveLocation+ "/" + chapter.fileName + ".txt"), StandardCharsets.UTF_8))) {
-                    writer.write(Jsoup.parse(chapter.chapterContent).wholeText());
-                } catch (UnsupportedEncodingException | FileNotFoundException e) {
-                    GrabberUtils.err(novel.window, e.getMessage(), e);
-                } catch (IOException e) {
-                    GrabberUtils.err(novel.window, "Could not write file. "+e.getMessage(), e);
-                }
+                // Preserve line breaks
+                writer.write(Jsoup.parse(chapter.chapterContent).wholeText());
             }
-            GrabberUtils.info("Output: " + saveLocation);
-        } else {
-            filename += ".txt";
-            try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                    new FileOutputStream(novel.saveLocation + "/" + filename), StandardCharsets.UTF_8))) {
-                for(Chapter chapter: novel.successfulChapters) {
-                    // Preserve line breaks
-                    writer.write(Jsoup.parse(chapter.chapterContent).wholeText());
-                }
-                novel.filename = filename;
-                GrabberUtils.info(novel.window, "Output: " + novel.saveLocation + "/" + filename);
-            } catch (UnsupportedEncodingException | FileNotFoundException e) {
-                GrabberUtils.err(novel.window, e.getMessage(), e);
-            } catch (IOException e) {
-                GrabberUtils.err(novel.window, "Could not write file. "+e.getMessage(), e);
-            }
+            novel.filename = filename;
+            GrabberUtils.info(novel.window, "Output: " + novel.saveLocation + "/" + filename);
+        } catch (UnsupportedEncodingException | FileNotFoundException e) {
+            GrabberUtils.err(novel.window, e.getMessage(), e);
+        } catch (IOException e) {
+            GrabberUtils.err(novel.window, "Could not write file. "+e.getMessage(), e);
         }
     }
 
@@ -86,7 +64,7 @@ public class Text {
         }
         if(novel.window.equals("checker")) filename =
                 novel.firstChapter + "-"+ novel.lastChapter+"-"+filename.replaceAll(" ","-");
-        return filename.replaceAll("[\\\\/:*?\"<>|]", "");
+        return (filename + novel.bookNameSuffix).replaceAll("[\\\\/:*?\"<>|]", "");
     }
 
 }

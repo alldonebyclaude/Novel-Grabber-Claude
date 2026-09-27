@@ -81,6 +81,9 @@ public class NovelBuilder {
         if(params.containsKey("noDesc")) {
             novel.noDescription =  true;
         }
+        if(params.containsKey("chapterFiles")) {
+            novel.chapterFiles = true;
+        }
         if(params.containsKey("login")) {
             novel.useAccount = true;
         }

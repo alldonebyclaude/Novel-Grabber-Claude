@@ -37,7 +37,7 @@ public class Config {
     private boolean autoGetImages = false;
     private boolean useStandardLocation = false;
     private boolean pollingEnabled = true;
-    private boolean separateChapters = false;
+    private boolean chapterFiles = false;
     private boolean libraryShowOnlyUpdatable = false;
     private boolean libraryNoCovers = false;
     private boolean showNovelFinishedNotification = false;
@@ -82,7 +82,7 @@ public class Config {
             setSaveLocation(prop.getProperty("saveLocation", saveLocation));
             setUseStandardLocation(Boolean.parseBoolean(prop.getProperty("useStandardLocation", String.valueOf(useStandardLocation))));
             setHeadlessList(new ArrayList<>(Arrays.asList(prop.getProperty("headlessList", "").split(","))));
-            setSeparateChapters(Boolean.parseBoolean(prop.getProperty("separateChapters", String.valueOf(separateChapters))));
+            setChapterFiles(chapterFilesSetting(prop, chapterFiles));
             setShowNovelFinishedNotification(Boolean.parseBoolean(prop.getProperty("showNovelFinishedNotification", String.valueOf(showNovelFinishedNotification))));
             // Library
             setFrequency(Integer.parseInt(prop.getProperty("frequency", String.valueOf(frequency))));
@@ -129,7 +129,7 @@ public class Config {
             prop.setProperty("saveLocation", getSaveLocation());
             prop.setProperty("useStandardLocation", String.valueOf(isUseStandardLocation()));
             prop.setProperty("headlessList", String.join(",", headlessList));
-            prop.setProperty("separateChapters", String.valueOf(isSeparateChapters()));
+            prop.setProperty("chapterFiles", String.valueOf(isChapterFiles()));
             prop.setProperty("showNovelFinishedNotification", String.valueOf(isShowNovelFinishedNotification()));
             // Library
             prop.setProperty("frequency", String.valueOf(getFrequency()));
@@ -282,12 +282,22 @@ public class Config {
         this.telegramAdminIds = telegramAdminIds;
     }
 
-    public boolean isSeparateChapters() {
-        return separateChapters;
+    /**
+     * The chapter files setting from the saved settings. The old "Separate chapters" option (TXT output only, one
+     * .txt file per chapter) was merged into chapter files, so if it was on, chapter files are on.
+     */
+    static boolean chapterFilesSetting(Properties saved, boolean defaultValue) {
+        boolean chapterFiles = Boolean.parseBoolean(saved.getProperty("chapterFiles", String.valueOf(defaultValue)));
+        return chapterFiles || Boolean.parseBoolean(saved.getProperty("separateChapters", "false"));
     }
 
-    public void setSeparateChapters(boolean separateChapters) {
-        this.separateChapters = separateChapters;
+    /** Also write each chapter to its own Markdown file, see {@link grabber.formats.ChapterFiles}. */
+    public boolean isChapterFiles() {
+        return chapterFiles;
+    }
+
+    public void setChapterFiles(boolean chapterFiles) {
+        this.chapterFiles = chapterFiles;
     }
 
     public boolean isLibraryShowOnlyUpdatable() {

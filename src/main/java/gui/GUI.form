@@ -2002,6 +2002,17 @@
                           <toolTipText value="Download potential images from a chapter"/>
                         </properties>
                       </component>
+                      <component id="c4f7e" class="javax.swing.JCheckBox" binding="settingsChapterFilesCheckBox" custom-create="true">
+                        <constraints>
+                          <grid row="4" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                            <preferred-size width="-1" height="28"/>
+                          </grid>
+                        </constraints>
+                        <properties>
+                          <text value="Also save chapters as Markdown files"/>
+                          <toolTipText value="Write each chapter to its own .md file in a &quot;&lt;title&gt; (chapters)&quot; folder, e.g. for translating"/>
+                        </properties>
+                      </component>
                       <component id="7ec63" class="javax.swing.JLabel">
                         <constraints>
                           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
@@ -2085,15 +2096,6 @@
                         <properties>
                           <text value=""/>
                           <toolTipText value="Browse files"/>
-                        </properties>
-                      </component>
-                      <component id="887a2" class="javax.swing.JCheckBox" binding="settingsSeperateChaptersCheckBox" custom-create="true">
-                        <constraints>
-                          <grid row="1" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Seperate chapters"/>
-                          <visible value="false"/>
                         </properties>
                       </component>
                       <grid id="dfede" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">

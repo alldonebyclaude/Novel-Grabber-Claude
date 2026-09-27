@@ -174,7 +174,7 @@ public class EPUB {
                         .replace("%lc", String.valueOf(novel.lastChapter));
                 break;
         }
-        return epubFilename.replaceAll("[\\\\/:*?\"<>|]", "");
+        return (epubFilename + novel.bookNameSuffix).replaceAll("[\\\\/:*?\"<>|]", "");
     }
 
     private void addMetadata() {

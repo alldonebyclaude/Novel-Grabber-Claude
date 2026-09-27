@@ -93,7 +93,7 @@ public class PDF {
         }
         if(novel.window.equals("checker")) epubFilename =
                 novel.firstChapter + "-"+ novel.lastChapter+"-"+epubFilename.replaceAll(" ","-");
-        return epubFilename.replaceAll("[\\\\/:*?\"<>|]", "");
+        return (epubFilename + novel.bookNameSuffix).replaceAll("[\\\\/:*?\"<>|]", "");
     }
 
     private String buildToc() {

@@ -211,7 +211,7 @@ public class GUI extends JFrame {
     private JPanel sourceCanUseHeadlessPanel;
     private JButton saveCookiesButton;
     private JCheckBox manUseAccountCheckBox;
-    private JCheckBox settingsSeperateChaptersCheckBox;
+    private JCheckBox settingsChapterFilesCheckBox;
     private JButton settingsTelegramBotBtn;
     private JPanel settingsTelegramPanel;
     private JTextField settingsTeleApiTknField;
@@ -914,14 +914,6 @@ public class GUI extends JFrame {
             }
         });
 
-        settingsOutputFormatComboBox.addActionListener(e -> {
-            // Show separate chapters checkbox if TXT selected
-            if (settingsOutputFormatComboBox.getSelectedIndex() == 1) {
-                settingsSeperateChaptersCheckBox.setVisible(true);
-            } else {
-                settingsSeperateChaptersCheckBox.setVisible(false);
-            }
-        });
         standardSaveLocationCheckBox.addActionListener(e -> {
             if (standardSaveLocationCheckBox.isSelected()) {
                 settingsSavelocationField.setVisible(true);
@@ -1028,9 +1020,9 @@ public class GUI extends JFrame {
             settings.setSaveLocation(settingsSavelocationField.getText());
             settings.setUseStandardLocation(standardSaveLocationCheckBox.isSelected());
             settings.setAutoGetImages(settingsAlwaysGetImagesCheckBox.isSelected());
+            settings.setChapterFiles(settingsChapterFilesCheckBox.isSelected());
             settings.setFilenameFormat(settingsNameOutputFormatComboBox.getSelectedIndex());
             settings.setOutputFormat(settingsOutputFormatComboBox.getSelectedIndex());
-            settings.setSeparateChapters(settingsSeperateChaptersCheckBox.isSelected());
             settings.setChapterTitleFormat(settingsChapterTitleComboBox.getSelectedIndex());
             if (settingsChapterTitleComboBox.getSelectedIndex() == chapterTitleFormatOptions.length-1
                     && !settingsNovelCustomChapterTitleField.getText().contains("%s")) {
@@ -1800,6 +1792,8 @@ public class GUI extends JFrame {
         // Novel settings
         settingsAlwaysGetImagesCheckBox = new JCheckBox();
         settingsAlwaysGetImagesCheckBox.setSelected(settings.isAutoGetImages());
+        settingsChapterFilesCheckBox = new JCheckBox();
+        settingsChapterFilesCheckBox.setSelected(settings.isChapterFiles());
 
         settingsSavelocationField = new JTextField();
         settingsSavelocationField.setVisible(false);
@@ -1830,13 +1824,6 @@ public class GUI extends JFrame {
 
         settingsOutputFormatComboBox = new JComboBox<>(epubFormats);
         settingsOutputFormatComboBox.setSelectedIndex(settings.getOutputFormat());
-
-        settingsSeperateChaptersCheckBox = new JCheckBox();
-        settingsSeperateChaptersCheckBox.setVisible(false);
-        if (settingsOutputFormatComboBox.getSelectedIndex() == 1) {
-            settingsSeperateChaptersCheckBox.setVisible(true);
-            settingsSeperateChaptersCheckBox.setSelected(settings.isSeparateChapters());
-        }
 
         settingsChapterTitleComboBox = new JComboBox<>(chapterTitleFormatOptions);
         if (settings.getChapterTitleFormat() > chapterTitleFormatOptions.length) {
@@ -2623,6 +2610,9 @@ public class GUI extends JFrame {
         settingsAlwaysGetImagesCheckBox.setText("Always get images");
         settingsAlwaysGetImagesCheckBox.setToolTipText("Download potential images from a chapter");
         settingsNovelPanel.add(settingsAlwaysGetImagesCheckBox, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 28), null, 0, false));
+        settingsChapterFilesCheckBox.setText("Also save chapters as Markdown files");
+        settingsChapterFilesCheckBox.setToolTipText("Write each chapter to its own .md file in a \"<title> (chapters)\" folder, e.g. for translating");
+        settingsNovelPanel.add(settingsChapterFilesCheckBox, new GridConstraints(4, 1, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 28), null, 0, false));
         final JLabel label31 = new JLabel();
         label31.setText("Chapter title format");
         label31.setToolTipText("Change the optionally inserted chapter title format ");
@@ -2649,9 +2639,6 @@ public class GUI extends JFrame {
         settingsBrowseSaveLocationBtn.setText("");
         settingsBrowseSaveLocationBtn.setToolTipText("Browse files");
         settingsNovelPanel.add(settingsBrowseSaveLocationBtn, new GridConstraints(3, 4, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, 1, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        settingsSeperateChaptersCheckBox.setText("Seperate chapters");
-        settingsSeperateChaptersCheckBox.setVisible(false);
-        settingsNovelPanel.add(settingsSeperateChaptersCheckBox, new GridConstraints(1, 2, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel32 = new JPanel();
         panel32.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
         settingsNovelPanel.add(panel32, new GridConstraints(0, 1, 1, 4, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));

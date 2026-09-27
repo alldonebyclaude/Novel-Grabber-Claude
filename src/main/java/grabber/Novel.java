@@ -1,6 +1,7 @@
 package grabber;
 
 import bots.telegram.DownloadTask;
+import grabber.formats.ChapterFiles;
 import grabber.formats.EPUB;
 import grabber.formats.PDF;
 import grabber.formats.Text;
@@ -29,6 +30,8 @@ public class Novel {
     public boolean getImages = false;
     public boolean displayChapterTitle = false;
     public boolean noDescription = false;
+    public boolean chapterFiles = false; // also write each chapter as a Markdown file (-chapterFiles)
+    public String bookNameSuffix = ""; // added to the book's file name, e.g. for a book of a stopped download
     public boolean reverseOrder = false;
     public boolean useHeadless = false;
     public boolean headlessGUI = false;
@@ -109,19 +112,25 @@ public class Novel {
         }
         if(reverseOrder) Collections.reverse(chapterList);
         // Download handling
-        for(int i = firstChapter-1; i < lastChapter; i++) { // -1 since chapter numbers start at 1
-            // replace with actual interrupted
-            if(killTask) {
-                throw new InterruptedException("Download stopped.");
+        try {
+            for(int i = firstChapter-1; i < lastChapter; i++) { // -1 since chapter numbers start at 1
+                // replace with actual interrupted
+                if(killTask) {
+                    throw new InterruptedException("Download stopped.");
+                }
+                chapterList.get(i).saveChapter(this);
+                if(init.gui != null) {
+                    init.gui.updateProgress(window);
+                }
+                if (this.downloadTask != null) {
+                    this.downloadTask.updateProgress(i, this.lastChapter);
+                }
+                GrabberUtils.sleep(waitTime);
             }
-            chapterList.get(i).saveChapter(this);
-            if(init.gui != null) {
-                init.gui.updateProgress(window);
-            }
-            if (this.downloadTask != null) {
-                this.downloadTask.updateProgress(i, this.lastChapter);
-            }
-            GrabberUtils.sleep(waitTime);
+        } catch (InterruptedException | RuntimeException e) {
+            // Stopped or failed halfway: keep what was downloaded, then let the caller handle it as before
+            savePartialBook(lastChapter - firstChapter + 1);
+            throw e;
         }
         reGrab = true;
     }
@@ -144,6 +153,16 @@ public class Novel {
         Chapter.chapterCounter = 0;
         chapterList = new ArrayList<>();
         images = new HashMap<>();
+        try {
+            followChapters(lastChapterURL, chapterNumber);
+        } catch (InterruptedException | RuntimeException e) {
+            // Stopped or failed halfway: keep what was downloaded, then let the caller handle it as before
+            savePartialBook(null);
+            throw e;
+        }
+    }
+
+    private void followChapters(String lastChapterURL, int chapterNumber) throws InterruptedException {
         while (true) {
             // replace with actual interrupted
             if(killTask) {
@@ -201,21 +220,7 @@ public class Novel {
         } else {
             // Output EPUB if at least one chapter was downloaded
             if(!successfulChapters.isEmpty()) {
-                // EPUB
-                if(Config.getInstance().getOutputFormat() == 0) {
-                    EPUB book = new EPUB(this);
-                    book.write();
-                }
-                // Text
-                if(Config.getInstance().getOutputFormat() == 1) {
-                    Text book = new Text(this);
-                    book.write();
-                }
-                // PDF
-                if(Config.getInstance().getOutputFormat() == 2) {
-                    PDF book = new PDF(this);
-                    book.write();
-                }
+                writeBookFiles();
             }
         }
     }
@@ -261,25 +266,57 @@ public class Novel {
             // Output EPUB if at least one chapter was downloaded
             if(!successfulChapters.isEmpty()) {
                 // Make interface
-                // EPUB
-                if(Config.getInstance().getOutputFormat() == 0) {
-                    EPUB book = new EPUB(this);
-                    book.write();
-                }
-                // Text
-                if(Config.getInstance().getOutputFormat() == 1) {
-                    Text book = new Text(this);
-                    book.write();
-                }
-                // PDF
-                if(Config.getInstance().getOutputFormat() == 2) {
-                    PDF book = new PDF(this);
-                    book.write();
-                }
+                writeBookFiles();
                 if (init.gui != null && Config.getInstance().isShowNovelFinishedNotification()) {
                     DesktopNotification.sendDownloadFinishedNotification(this);
                 }
             }
+        }
+    }
+
+    /**
+     * Writes a book of the chapters downloaded so far, for a download that was stopped or failed halfway. Its file
+     * name says so, e.g. "(stopped after 37 of 100 chapters)", so it never replaces a complete book. Not done for the
+     * library checker, which updates existing books in place.
+     *
+     * @param planned the number of chapters the download was for, or null if unknown (chapter-to-chapter mode)
+     */
+    private void savePartialBook(Integer planned) {
+        if ("checker".equals(window)) return;
+        // Same order as output() writes the book in
+        if (reverseOrder) Collections.reverse(chapterList);
+        successfulChapters = new ArrayList<>();
+        failedChapters = new ArrayList<>();
+        for (Chapter chapter : chapterList) {
+            if (chapter.status == 1) successfulChapters.add(chapter);
+            if (chapter.status == 2) failedChapters.add(chapter);
+        }
+        if (successfulChapters.isEmpty()) return;
+
+        bookNameSuffix = " (stopped after " + successfulChapters.size() + (planned != null ? " of " + planned : "") + " chapters)";
+        try {
+            writeBookFiles();
+            GrabberUtils.info(window, "Download stopped: saved the " + successfulChapters.size() + " chapters downloaded so far.");
+        } catch (RuntimeException e) {
+            GrabberUtils.err(window, "Could not save the chapters downloaded so far. " + e.getMessage(), e);
+        } finally {
+            bookNameSuffix = "";
+        }
+    }
+
+    /**
+     * Writes the book in the selected output format. Chosen chapter files are already written, one per chapter.
+     */
+    private void writeBookFiles() {
+        switch (Config.getInstance().getOutputFormat()) {
+            case 0 -> new EPUB(this).write();
+            case 1 -> new Text(this).write();
+            case 2 -> new PDF(this).write();
+            default -> GrabberUtils.err(window, "Unknown output format " + Config.getInstance().getOutputFormat());
+        }
+        // The chapter files were written during the download, one per chapter
+        if (ChapterFiles.isEnabled(this)) {
+            GrabberUtils.info(window, "Chapter files: " + new ChapterFiles(this).folder());
         }
     }
 }
