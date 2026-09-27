@@ -4,6 +4,7 @@ import grabber.Chapter;
 import grabber.GrabberUtils;
 import grabber.Novel;
 import grabber.NovelMetadata;
+import grabber.PaywallSite;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -19,6 +20,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * GoodNovel sells its chapters: without paying, a book only has a free preview. Checked 2026-09-24: the site is now a Nuxt site; the "continue reading" link the source took the book id from is gone and several chapters are marked locked,
+ * so this source doesn't work. It will be rebuilt once all sources have tests, and then may only download the
+ * chapters the user can open (free ones, or bought ones with the user's own login) and must skip locked chapters.
+ */
+@PaywallSite("Not working yet. The site was rebuilt and sells its chapters; the source will be rebuilt later to download free chapters, and chapters you bought with your own login.")
 public class goodnovel_com implements Source {
     private final String name = "GoodNovel";
     private final String url = "https://www.goodnovel.com/";

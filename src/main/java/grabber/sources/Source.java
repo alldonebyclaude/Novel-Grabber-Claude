@@ -22,4 +22,11 @@ public interface Source {
     List<String> getBlacklistedTags();
 
     String toString();
+
+    /**
+     * Whether this source is marked {@link grabber.PaywallSite}: the site sells its chapters.
+     */
+    default boolean isPaywallSite() {
+        return getClass().isAnnotationPresent(grabber.PaywallSite.class);
+    }
 }

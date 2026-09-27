@@ -4,6 +4,7 @@ import grabber.Chapter;
 import grabber.GrabberUtils;
 import grabber.Novel;
 import grabber.NovelMetadata;
+import grabber.PaywallSite;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -16,6 +17,12 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+/**
+ * Dreame sells its chapters: without paying, a book only has a free preview. Checked 2026-09-24: the site is now a Next.js site whose novel page no longer carries the chapter list or which chapters are locked,
+ * so this source doesn't work. It will be rebuilt once all sources have tests, and then may only download the
+ * chapters the user can open (free ones, or bought ones with the user's own login) and must skip locked chapters.
+ */
+@PaywallSite("Not working yet. The site was rebuilt and sells its chapters; the source will be rebuilt later to download free chapters, and chapters you bought with your own login.")
 public class dreame_com implements Source {
     private final String name = "Dreame";
     private final String url = "https://dreame.com";

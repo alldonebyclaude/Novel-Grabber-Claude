@@ -191,6 +191,10 @@ public class NovelBuilder {
                 MalformedURLException | IllegalAccessException e) {
             throw new IOException("Could not access or load source file(s)", e);
         }
+        if (source.isPaywallSite()) {
+            GrabberUtils.info(novel.window, source.getName() + " is a paywall site: "
+                    + source.getClass().getAnnotation(PaywallSite.class).value());
+        }
         novel.source = source;
         return this;
     }
