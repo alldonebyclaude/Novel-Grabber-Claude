@@ -13,11 +13,12 @@ Novel-Grabber is a GUI based web scrapper that can download and convert chapters
 
 ## How to use
 ### Running the program
-Download [Novel-Grabber.zip](https://github.com/Flameish/Novel-Grabber/releases/latest/download/Novel-Grabber.zip) and execute the launcher inside, if you can't execute the jar, try to start it via the terminal command: 
+Unzip `Novel-Grabber-<version>.zip` into a folder you can write to (not `C:\Program Files`: settings are saved next to the jar) and start it:
 
-	java -jar NG-Launcher.jar
+* Windows: double-click `Novel-Grabber.bat`
+* Linux / macOS: `./novel-grabber.sh`
 
-Starting `NG-Launcher.jar` will update and re-download files. You can also start the main program directly via `Novel-Grabber.jar` inside the `bin`  subfolder.
+The zip is built with `mvn package` (`target/Novel-Grabber-<version>.zip`). The `README.txt` inside explains installing and updating.
 
 ### Automatic novel downloading
 1. Enter the link of the novel
@@ -86,7 +87,7 @@ Most sites prohibit the scrapping for their content. Use at your own risk.
 Please use with appropriate wait times. Downloaded chapters are for private use only.
 
 ## Requirements
-* [Java](https://www.java.com/en/) (version 8+) needs to be installed.
+* Java 25 or newer, e.g. from [Adoptium](https://adoptium.net/). The start scripts check the version.
 
 ## Credits & Libraries 
 Novel Grabber was build in Java with:

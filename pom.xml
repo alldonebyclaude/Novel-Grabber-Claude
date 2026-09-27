@@ -235,17 +235,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>3.8.0</version>
-				<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					<archive>
-						<manifest>
-							<mainClass>system.init</mainClass>
-						</manifest>
-					</archive>
-
-				</configuration>
 				<executions>
 					<execution>
 						<id>make-assembly</id>
@@ -253,6 +242,33 @@
 						<goals>
 							<goal>single</goal>
 						</goals>
+						<configuration>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<archive>
+								<manifest>
+									<mainClass>system.init</mainClass>
+								</manifest>
+							</archive>
+						</configuration>
+					</execution>
+					<!-- The installable zip (target/Novel-Grabber-<version>.zip). Must come after make-assembly,
+					     because it contains the jar that execution builds. -->
+					<execution>
+						<id>distribution</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/distribution.xml</descriptor>
+							</descriptors>
+							<finalName>Novel-Grabber-${project.version}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+							<attach>false</attach>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

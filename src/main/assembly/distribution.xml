@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The zip users install from: the fat jar, the site sources the app loads from sources/ next to the jar,
+     start scripts and a short README. See src/main/dist/. -->
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.2.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.2.0 https://maven.apache.org/xsd/assembly-2.2.0.xsd">
+	<id>distribution</id>
+	<formats>
+		<format>zip</format>
+	</formats>
+	<baseDirectory>Novel-Grabber</baseDirectory>
+	<files>
+		<file>
+			<source>${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar</source>
+			<destName>Novel-Grabber.jar</destName>
+		</file>
+		<file>
+			<source>src/main/dist/Novel-Grabber.bat</source>
+			<lineEnding>crlf</lineEnding>
+		</file>
+		<file>
+			<source>src/main/dist/novel-grabber.sh</source>
+			<lineEnding>unix</lineEnding>
+			<fileMode>0755</fileMode>
+		</file>
+		<file>
+			<source>src/main/dist/README.txt</source>
+			<lineEnding>crlf</lineEnding>
+		</file>
+	</files>
+	<fileSets>
+		<fileSet>
+			<directory>${project.build.outputDirectory}/grabber/sources</directory>
+			<outputDirectory>sources/grabber/sources</outputDirectory>
+			<includes>
+				<include>*.class</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</assembly>
