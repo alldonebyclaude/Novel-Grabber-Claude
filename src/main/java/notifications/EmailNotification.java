@@ -4,7 +4,9 @@ import grabber.GrabberUtils;
 import grabber.Novel;
 import jakarta.activation.DataSource;
 import jakarta.activation.FileDataSource;
+import jakarta.mail.Message;
 import org.simplejavamail.api.email.Email;
+import org.simplejavamail.api.email.Recipient;
 import org.simplejavamail.api.mailer.Mailer;
 import org.simplejavamail.api.mailer.config.TransportStrategy;
 import org.simplejavamail.email.EmailBuilder;
@@ -57,7 +59,7 @@ public class EmailNotification {
             links.append("<a href=\""+novel.chapterList.get(i).chapterURL+"\">"+novel.chapterList.get(i).name+"</a><br>");
         }
         Email email = EmailBuilder.startingBlank()
-                .to(config.getInstance().getReceiverEmail())
+                .withRecipients(new Recipient(null, config.getInstance().getReceiverEmail(), Message.RecipientType.TO, null))
                 .from(config.getInstance().getReceiverEmail())
                 .withSubject("[Novel-Grabber]"+novel.metadata.getTitle() + " - Update")
                 .withHTMLText(links.toString())
@@ -78,7 +80,7 @@ public class EmailNotification {
         File epub = new File(novel.saveLocation+"/"+novel.filename);
         DataSource epub_source = new FileDataSource(epub);
         Email email = EmailBuilder.startingBlank()
-                .to(config.getInstance().getReceiverEmail())
+                .withRecipients(new Recipient(null, config.getInstance().getReceiverEmail(), Message.RecipientType.TO, null))
                 .from(config.getInstance().getReceiverEmail())
                 .withSubject("[Novel-Grabber]"+novel.metadata.getTitle() +" - Update")
                 .withHTMLText(links.toString())

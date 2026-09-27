@@ -19,7 +19,7 @@ import system.init;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 public class manualSource implements Source {
     private final String name = "Manual";
@@ -83,7 +83,7 @@ public class manualSource implements Source {
         novel.headlessDriver.driver.navigate().to(novel.novelLink);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
         novel.headlessDriver.driver.navigate().to(novel.novelLink);
-        novel.headlessDriver.driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
+        novel.headlessDriver.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
         Document toc = Jsoup.parse(novel.headlessDriver.driver.getPageSource(), baseUrl);
         novel.headlessDriver.driver.close();
@@ -147,7 +147,7 @@ public class manualSource implements Source {
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
         novel.headlessDriver.driver.navigate().to(chapter.chapterURL);
         if (chapterContainer.isEmpty()) { // Wait 5 seconds for everything to finish loading
-            novel.headlessDriver.driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
+            novel.headlessDriver.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         } else { // Wait until chapter container is located
             novel.headlessDriver.wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(chapterContainer)));
         }

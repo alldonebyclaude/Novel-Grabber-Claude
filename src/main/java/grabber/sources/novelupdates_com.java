@@ -18,7 +18,7 @@ import system.Config;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 public class novelupdates_com implements Source {
     private final String name = "Novel Updates";
@@ -56,7 +56,7 @@ public class novelupdates_com implements Source {
         novel.headlessDriver.driver.navigate().to(novel.novelLink);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
         novel.headlessDriver.driver.navigate().to(novel.novelLink);
-        novel.headlessDriver.driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
+        novel.headlessDriver.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
         novel.headlessDriver.driver.findElement(By.cssSelector("span.my_popupreading_open")).click();
         novel.headlessDriver.wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#my_popupreading ol.sp_chp li a[href]")));
@@ -91,7 +91,7 @@ public class novelupdates_com implements Source {
         novel.headlessDriver.driver.navigate().to(chapterURL);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
         novel.headlessDriver.driver.navigate().to(chapterURL);
-        novel.headlessDriver.driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
+        novel.headlessDriver.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         WebElement chapterElement = novel.headlessDriver.driver.findElement(By.cssSelector("body"));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
         return Jsoup.parse(chapterElement.getAttribute("innerHTML"), baseUrl);

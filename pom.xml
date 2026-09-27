@@ -7,10 +7,11 @@
 	<version>3.10.3</version>
 	  
 	<properties>
-	  	<maven.compiler.target>1.8</maven.compiler.target>
-	  	<maven.compiler.source>1.8</maven.compiler.source>
+	  	<maven.compiler.release>25</maven.compiler.release>
 	  	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<openhtml.version>1.0.8</openhtml.version>
+		<openhtml.version>1.0.10</openhtml.version>
+		<!-- Tests tagged "live" hit real sites; they only run with -Dgroups=live (see the live-tests profile) -->
+		<test.excludedGroups>live</test.excludedGroups>
 	</properties>
 
 	<repositories>
@@ -24,51 +25,72 @@
 		</repository>
 	</repositories>
 
+	<dependencyManagement>
+		<dependencies>
+			<!-- okhttp, telegram-bot-api and Notify pull different Kotlin stdlib versions; keep them aligned -->
+			<dependency>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-bom</artifactId>
+				<version>2.3.21</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
+			<!-- okhttp 5 publishes the JVM classes as okhttp-jvm; the plain "okhttp" artifact is an empty stub for Gradle -->
 			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp</artifactId>
-			<version>5.0.0-alpha.11</version>
+			<artifactId>okhttp-jvm</artifactId>
+			<version>5.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
 			<version>1.1.1</version>
+			<exclusions>
+				<!-- json-simple wrongly declares JUnit 4.10 at compile scope; it bloats the jar and breaks surefire -->
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.formdev</groupId>
 			<artifactId>flatlaf</artifactId>
-			<version>3.1.1</version>
+			<version>3.7.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.pengrad</groupId>
 			<artifactId>java-telegram-bot-api</artifactId>
-			<version>6.7.0</version>
+			<version>10.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.16.1</version>
+			<version>1.23.2</version>
 		</dependency>
 		<dependency>
 			<groupId>io.github.bonigarcia</groupId>
 			<artifactId>webdrivermanager</artifactId>
-			<version>5.3.3</version>
+			<version>6.4.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-java</artifactId>
-			<version>4.10.0</version>
+			<version>4.49.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>htmlunit-driver</artifactId>
-			<version>4.10.0</version>
+			<artifactId>htmlunit3-driver</artifactId>
+			<version>4.48.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.simplejavamail</groupId>
 			<artifactId>simple-java-mail</artifactId>
-			<version>8.1.1</version>
+			<version>9.3.5</version>
 		</dependency>
 		<dependency>
 			<groupId>net.dankito.readability4j</groupId>
@@ -78,12 +100,33 @@
 		<dependency>
 			<groupId>com.dorkbox</groupId>
 			<artifactId>Notify</artifactId>
-			<version>3.7</version>
+			<version>4.5</version>
 		</dependency>
 		<dependency>
 			<groupId>nl.siegmann.epublib</groupId>
 			<artifactId>epublib-core</artifactId>
 			<version>3.1</version>
+			<exclusions>
+				<!-- kxml2 (also from epublib) ships the xmlpull API and a working parser + serializer. This minimal
+				     xmlpull jar registers an MXSerializer it does not contain; if its service file wins in the fat jar,
+				     EPUB writing fails with "serializer is null". -->
+				<exclusion>
+					<groupId>xmlpull</groupId>
+					<artifactId>xmlpull</artifactId>
+				</exclusion>
+				<!-- An SLF4J 1.6 binding, which the SLF4J 2 API ignores; replaced by slf4j-simple 2 below -->
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-simple</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<!-- Logging backend for the libraries' SLF4J logs; must match the slf4j-api version (from webdrivermanager).
+			     The log level is set in src/main/resources/simplelogger.properties. -->
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>2.0.19</version>
 		</dependency>
 		<dependency>
 			<groupId>com.openhtmltopdf</groupId>
@@ -100,15 +143,92 @@
 			<artifactId>forms_rt</artifactId>
 			<version>7.0.3</version>
 		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>5.10.3</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
+		<!-- Maven 4 warns when the default lifecycle plugins are not pinned -->
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>3.5.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>3.5.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.5.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.6.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>3.2.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>3.2.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.22.0</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.16.0</version>
+			</plugin>
+			<!-- The project targets Java 25 and Maven 4 only; fail early with a clear message on older versions -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.6.3</version>
+				<executions>
+					<execution>
+						<id>require-java-25</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireJavaVersion>
+									<version>[25,)</version>
+									<message>Novel-Grabber requires JDK 25 or newer.</message>
+								</requireJavaVersion>
+								<requireMavenVersion>
+									<version>[4.0.0-rc-6,)</version>
+									<message>Novel-Grabber requires Maven 4.</message>
+								</requireMavenVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<!-- Make a "fat" jar with all dependencies during packaging phase -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.4.1</version>
+				<version>3.8.0</version>
 				<configuration>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
@@ -130,7 +250,30 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludedGroups>${test.excludedGroups}</excludedGroups>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<!-- mvn test -Dgroups=live : run only the live tests -->
+		<profile>
+			<id>live-tests</id>
+			<activation>
+				<property>
+					<name>groups</name>
+					<value>live</value>
+				</property>
+			</activation>
+			<properties>
+				<test.excludedGroups />
+			</properties>
+		</profile>
+	</profiles>
 
 </project>

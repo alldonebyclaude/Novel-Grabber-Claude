@@ -8,6 +8,7 @@ package bots.telegram;
 import bots.BotUtils;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.CallbackQuery;
+import com.pengrad.telegrambot.model.LinkPreviewOptions;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
@@ -119,11 +120,11 @@ public class Bot {
             GrabberUtils.info(messageTxt);
             if (!messageTxt.startsWith("/info") && !messageTxt.startsWith("/start")) {
                 if (messageTxt.startsWith("/sources")) {
-                    this.bot.execute((new SendMessage(chatId, this.getSourcesString())).parseMode(ParseMode.Markdown).disableWebPagePreview(true));
+                    this.bot.execute((new SendMessage(chatId, this.getSourcesString())).parseMode(ParseMode.Markdown).linkPreviewOptions(new LinkPreviewOptions().isDisabled(true)));
                 } else if (messageTxt.startsWith("/cli")) {
-                    this.bot.execute((new SendMessage(chatId, "Input needs to start with '-link'. All parameter are case sensitive.\n\n[-link] | {novel_URL} | URL to the novel's table of contents page. Every other parameter is optional.\n[-wait] | {miliseconds} | Time between each chapter grab.\n[-chapters] | {all}, {5 27}, {12 last} | Specify which chapters to download.\n[-noDesc] | Don't create a description page.\n[-getImages] | Grab images from chapter body as well.\n[-displayTitle] | Write the chapter title at the top of each chapter text.\n[-invertOrder] | Invert the chapter order.\n\nExample:\n -link http://novelhost.com/novel/ -chapters 5 10 -getImages")).disableWebPagePreview(true));
+                    this.bot.execute((new SendMessage(chatId, "Input needs to start with '-link'. All parameter are case sensitive.\n\n[-link] | {novel_URL} | URL to the novel's table of contents page. Every other parameter is optional.\n[-wait] | {miliseconds} | Time between each chapter grab.\n[-chapters] | {all}, {5 27}, {12 last} | Specify which chapters to download.\n[-noDesc] | Don't create a description page.\n[-getImages] | Grab images from chapter body as well.\n[-displayTitle] | Write the chapter title at the top of each chapter text.\n[-invertOrder] | Invert the chapter order.\n\nExample:\n -link http://novelhost.com/novel/ -chapters 5 10 -getImages")).linkPreviewOptions(new LinkPreviewOptions().isDisabled(true)));
                 } else if (messageTxt.startsWith("/limits")) {
-                    this.bot.execute((new SendMessage(chatId, user.getLimitString())).disableWebPagePreview(true));
+                    this.bot.execute((new SendMessage(chatId, user.getLimitString())).linkPreviewOptions(new LinkPreviewOptions().isDisabled(true)));
                 } else if (messageTxt.startsWith("/updateVips")) {
                     if (this.config.getTelegramAdminIds().contains(String.valueOf(userId))) {
                         this.readVipFile();
@@ -145,7 +146,7 @@ public class Bot {
                     });
                 }
             } else {
-                this.bot.execute((new SendMessage(chatId, BotUtils.getStringFromFile("./telegram/info.txt"))).parseMode(ParseMode.Markdown).disableWebPagePreview(true));
+                this.bot.execute((new SendMessage(chatId, BotUtils.getStringFromFile("./telegram/info.txt"))).parseMode(ParseMode.Markdown).linkPreviewOptions(new LinkPreviewOptions().isDisabled(true)));
             }
 
         }

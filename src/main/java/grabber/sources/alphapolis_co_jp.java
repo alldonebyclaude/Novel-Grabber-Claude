@@ -16,7 +16,7 @@ import org.openqa.selenium.WebElement;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 public class alphapolis_co_jp implements Source {
     private final String name = "AlphaPolis";
@@ -82,7 +82,7 @@ public class alphapolis_co_jp implements Source {
         novel.headlessDriver.driver.navigate().to(chapterURL);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
         novel.headlessDriver.driver.navigate().to(chapterURL);
-        novel.headlessDriver.driver.manage().timeouts().implicitlyWait(15, TimeUnit.SECONDS);
+        novel.headlessDriver.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         WebElement chapterElement = novel.headlessDriver.driver.findElement(By.cssSelector(".novel-body"));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
         return Jsoup.parse(chapterElement.getAttribute("innerHTML"), baseUrl);
