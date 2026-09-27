@@ -1,8 +1,11 @@
 package grabber;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -10,6 +13,20 @@ class HiddenTextTest {
 
     private static Element chapter(String html) {
         return Jsoup.parse(html).selectFirst("#chapter");
+    }
+
+    @Test
+    void removesRoyalRoadsHiddenNotice() throws Exception {
+        // The saved Royal Road chapter hides one element with a display:none rule on a random class.
+        File fixture = new File(getClass().getClassLoader().getResource("royalroad.com/chapter.html").toURI());
+        Document page = Jsoup.parse(fixture, "UTF-8", "https://www.royalroad.com/");
+        Element chapter = page.selectFirst(".chapter-content");
+        String hiddenClass = "cjA3YWU3ZGMwZWUyZjQ5ZDc4OGU3ZmJhOTJkNmE3NGEy";
+        int paragraphs = chapter.select("p").size();
+
+        assertEquals(1, HiddenText.remove(chapter));
+        assertTrue(chapter.getElementsByClass(hiddenClass).isEmpty());
+        assertEquals(paragraphs, chapter.select("p").size(), "the visible text is untouched");
     }
 
     @Test

@@ -8,15 +8,26 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+/**
+ * Shōsetsuka ni Narō (syosetu.com). A serialized novel's page lists its episodes 100 at a time ({@code ?p=2} and
+ * so on); a short story (短編) has no list, and its text is on the novel page itself.
+ */
 public class ncode_syosetu_com implements Source {
-    private final String name = "";
-    private final String url = "";
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+    private static final long LIST_PAGE_DELAY_MS = 1000;
+
+    private final String name = "Syosetu";
+    private final String url = "https://ncode.syosetu.com/";
     private final boolean canHeadless = false;
     private Novel novel;
     private Document toc;
@@ -47,20 +58,25 @@ public class ncode_syosetu_com implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            Elements chapterLinks = toc.select(".index_box a");
-            for (Element chapterLink : chapterLinks) {
-                chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
+            toc = fetch(novel.novelLink);
+            Document listPage = toc;
+            Set<String> visited = new HashSet<>();
+            while (true) {
+                chapterList.addAll(parseChapterList(listPage));
+                String nextPage = parseNextPageUrl(listPage);
+                if (nextPage == null || !visited.add(nextPage)) break;
+                Thread.sleep(LIST_PAGE_DELAY_MS);
+                listPage = fetch(nextPage);
+            }
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             }
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
         return chapterList;
     }
@@ -68,11 +84,7 @@ public class ncode_syosetu_com implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            chapterBody = doc.selectFirst(".novel_view");
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
@@ -82,24 +94,61 @@ public class ncode_syosetu_com implements Source {
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
-
-        if (toc != null) {
-            Element title = toc.selectFirst(".novel_title");
-            Element author = toc.selectFirst(".novel_writername a");
-            Element desc = toc.selectFirst("#novel_ex");
-
-            metadata.setTitle(title != null ? title.text() : "");
-            metadata.setAuthor(author != null ? author.text() : "");
-            metadata.setDescription(desc != null ? desc.text() : "");
-        }
-
-        return metadata;
+        if (toc == null) return new NovelMetadata();
+        return parseMetadata(toc);
     }
 
     public List<String> getBlacklistedTags() {
-        List<String> blacklistedTags = new ArrayList<>();
-        return blacklistedTags;
+        return new ArrayList<>();
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /**
+     * Reads the episodes on one page of the table of contents, in order. A short story is one chapter: the novel
+     * page itself.
+     */
+    static List<Chapter> parseChapterList(Document novelPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        for (Element link : novelPage.select(".p-eplist a.p-eplist__subtitle[href]")) {
+            if (link.text().isBlank()) continue;
+            chapterList.add(new Chapter(link.text(), link.attr("abs:href")));
+        }
+        Element title = novelPage.selectFirst(".p-novel__title");
+        if (chapterList.isEmpty() && title != null && parseChapterBody(novelPage) != null) {
+            chapterList.add(new Chapter(title.text(), novelPage.location()));
+        }
+        return chapterList;
+    }
+
+    /** The next page of the table of contents, or null on the last page (where "next" is not a link). */
+    static String parseNextPageUrl(Document novelPage) {
+        Element next = novelPage.selectFirst("a.c-pager__item--next[href]");
+        return next == null ? null : next.attr("abs:href");
+    }
+
+    /** Returns the text with its foreword and afterword, if any, or null if the page has none. */
+    static Element parseChapterBody(Document page) {
+        return page.selectFirst(".p-novel__body");
+    }
+
+    /** Reads title, author and summary. The site has no cover images. */
+    static NovelMetadata parseMetadata(Document novelPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = novelPage.selectFirst(".p-novel__title");
+        Element author = novelPage.selectFirst(".p-novel__author");
+        Element summary = novelPage.selectFirst("#novel_ex");
+
+        if (title != null) metadata.setTitle(title.text());
+        // "作者：<name>", the name linked to the author's page when they have one
+        if (author != null) {
+            Element authorLink = author.selectFirst("a");
+            metadata.setAuthor(authorLink != null ? authorLink.text() : author.text().replaceFirst("^作者[：:]", "").strip());
+        }
+        if (summary != null) metadata.setDescription(summary.text());
+        return metadata;
+    }
 }

@@ -8,13 +8,21 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * The novel page lists the chapters by volume in accordions (and, for some novels, further sections such as
+ * in-story forum posts). Early-access chapters show "(Unlocks on &lt;date&gt;)" and are left out until then.
+ */
 public class re_library_com implements Source {
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
     private final String name = "Re:Library";
     private final String url = "https://re-library.com";
     private final boolean canHeadless = false;
@@ -47,17 +55,20 @@ public class re_library_com implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink).get();
-            Elements chapterLinks = toc.select(".su-accordion a");
-            for (Element chapterLink : chapterLinks) {
-                chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
+            toc = fetch(novel.novelLink);
+            chapterList = parseChapterList(toc);
+            int locked = countLockedChapters(toc);
+            if (locked > 0) {
+                GrabberUtils.info(novel.window, locked + " chapters are early access and can't be read yet, "
+                        + "so they are left out.");
+            }
+            if (chapterList.isEmpty() && locked == 0) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             }
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
         }
         return chapterList;
     }
@@ -65,8 +76,7 @@ public class re_library_com implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL).get();
-            chapterBody = doc.select(".entry-content").first();
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
@@ -76,13 +86,11 @@ public class re_library_com implements Source {
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
+        if (toc == null) return new NovelMetadata();
 
-        if (toc != null) {
-            metadata.setTitle(toc.select(".entry-title").first().text());
-            metadata.setBufferedCover(toc.select("img.rounded").attr("abs:src"));
-        }
-
+        NovelMetadata metadata = parseMetadata(toc);
+        String coverUrl = parseCoverUrl(toc);
+        if (coverUrl != null) metadata.setBufferedCover(coverUrl);
         return metadata;
     }
 
@@ -103,7 +111,71 @@ public class re_library_com implements Source {
         blacklistedTags.add("h2:contains(References)");
         blacklistedTags.add("table#fixed");
         blacklistedTags.add("a:contains(Index)");
+        // Navigation, the author/translator/editor credits and the view counter and like buttons
+        blacklistedTags.add(".PageLink");
+        blacklistedTags.add("table:matches((?i)translator|editor)");
+        blacklistedTags.add(".post-views");
+        blacklistedTags.add(".wpulike");
         return blacklistedTags;
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /** Reads the chapters in page order: the volumes, then any further sections. Early-access chapters are left out. */
+    static List<Chapter> parseChapterList(Document novelPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        for (Element link : novelPage.select(".entry-content .su-accordion li a[href]")) {
+            if (link.selectFirst(".rl-unlock-text") != null || link.text().isBlank()) continue;
+            chapterList.add(new Chapter(link.text(), link.attr("abs:href")));
+        }
+        return chapterList;
+    }
+
+    /** The number of early-access chapters, which show when they unlock instead of a readable link. */
+    static int countLockedChapters(Document novelPage) {
+        return novelPage.select(".entry-content .su-accordion li a:has(.rl-unlock-text)").size();
+    }
+
+    /** Returns the chapter text, or null if the page has none. */
+    static Element parseChapterBody(Document chapterPage) {
+        return chapterPage.selectFirst("article .entry-content");
+    }
+
+    /**
+     * Reads title, author, synopsis and categories. The cover is left to {@link #parseCoverUrl(Document)},
+     * because setting it on {@link NovelMetadata} downloads the image.
+     */
+    static NovelMetadata parseMetadata(Document novelPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = novelPage.selectFirst(".entry-title");
+        Element author = infoValue(novelPage, "Author");
+        Element categories = infoValue(novelPage, "Categories");
+        Element synopsis = novelPage.selectFirst(".entry-content .su-box .su-box-content");
+
+        if (title != null) metadata.setTitle(title.text());
+        if (author != null) metadata.setAuthor(author.text());
+        if (synopsis != null) metadata.setDescription(synopsis.text());
+        if (categories != null) {
+            List<String> subjects = new ArrayList<>();
+            for (String category : categories.text().split(",")) {
+                if (!category.isBlank()) subjects.add(category.strip());
+            }
+            metadata.setSubjects(subjects);
+        }
+        return metadata;
+    }
+
+    /** The value next to a label in the novel's info box, e.g. "Author" (a table cell) or "Categories" (a div). */
+    private static Element infoValue(Document novelPage, String label) {
+        Element labelElement = novelPage.selectFirst(".entry-content table.rounded *:matchesOwn(^" + label + "$)");
+        return labelElement == null ? null : labelElement.nextElementSibling();
+    }
+
+    static String parseCoverUrl(Document novelPage) {
+        Element cover = novelPage.selectFirst(".entry-content table.rounded img[src]");
+        return cover == null ? null : cover.absUrl("src");
+    }
 }

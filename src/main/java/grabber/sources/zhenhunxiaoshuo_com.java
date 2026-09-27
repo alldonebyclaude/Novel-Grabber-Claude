@@ -8,13 +8,21 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * A book's page ({@code /<slug>/}) lists its chapters ({@code /<id>.html}) under a focus box with the title and
+ * description.
+ */
 public class zhenhunxiaoshuo_com implements Source {
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
     private final String name = "Xiaoshuo";
     private final String url = "https://www.zhenhunxiaoshuo.com/";
     private final boolean canHeadless = false;
@@ -47,17 +55,15 @@ public class zhenhunxiaoshuo_com implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
-            Elements chapterLinks = toc.select(".excerpts a");
-            for (Element chapterLink : chapterLinks) {
-                chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
+            toc = fetch(novel.novelLink);
+            chapterList = parseChapterList(toc);
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             }
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
         }
         return chapterList;
     }
@@ -65,8 +71,7 @@ public class zhenhunxiaoshuo_com implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL).cookies(novel.cookies).get();
-            chapterBody = doc.select(".article-content").first();
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
@@ -76,19 +81,42 @@ public class zhenhunxiaoshuo_com implements Source {
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
-
-        if (toc != null) {
-            metadata.setTitle(toc.selectFirst(".focusbox-title").text());
-            metadata.setDescription(toc.selectFirst(".focusbox-text").text());
-        }
-
-        return metadata;
+        if (toc == null) return new NovelMetadata();
+        return parseMetadata(toc);
     }
 
     public List<String> getBlacklistedTags() {
-        List<String> blacklistedTags = new ArrayList<>();
-        return blacklistedTags;
+        return new ArrayList<>();
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /** Reads the book's chapter list, in order. */
+    static List<Chapter> parseChapterList(Document bookPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        for (Element link : bookPage.select(".excerpts a[href]")) {
+            if (link.text().isBlank()) continue;
+            chapterList.add(new Chapter(link.text(), link.attr("abs:href")));
+        }
+        return chapterList;
+    }
+
+    /** Returns the chapter text, or null if the page has none. */
+    static Element parseChapterBody(Document chapterPage) {
+        return chapterPage.selectFirst(".article-content");
+    }
+
+    /** Reads title and description. The site shows no author or cover. */
+    static NovelMetadata parseMetadata(Document bookPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = bookPage.selectFirst(".focusbox-title");
+        Element description = bookPage.selectFirst(".focusbox-text");
+
+        if (title != null) metadata.setTitle(title.text());
+        if (description != null) metadata.setDescription(description.text());
+        return metadata;
+    }
 }

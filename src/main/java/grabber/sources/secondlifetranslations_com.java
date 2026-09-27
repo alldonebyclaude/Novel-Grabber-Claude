@@ -8,13 +8,17 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class secondlifetranslations_com implements Source {
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
     private final String name = "Second Life Translations";
     private final String url = "https://secondlifetranslations.com/";
     private final boolean canHeadless = false;
@@ -47,20 +51,15 @@ public class secondlifetranslations_com implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            Elements chapterLinks = toc.select(".panel a");
-            for (Element chapterLink : chapterLinks) {
-                chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
+            toc = fetch(novel.novelLink);
+            chapterList = parseChapterList(toc);
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             }
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
         }
         return chapterList;
     }
@@ -68,11 +67,7 @@ public class secondlifetranslations_com implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            chapterBody = doc.selectFirst(".entry-content");
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
@@ -82,25 +77,11 @@ public class secondlifetranslations_com implements Source {
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
+        if (toc == null) return new NovelMetadata();
 
-        if (toc != null) {
-            Element title = toc.selectFirst("meta[property=og:title]");
-            Element desc = toc.selectFirst(".novel-entry-content");
-            Element cover = toc.selectFirst(".novelcover");
-
-            metadata.setTitle(title != null ? title.attr("content") : "");
-            metadata.setDescription(desc != null ? desc.text() : "");
-            metadata.setBufferedCover(cover != null ? cover.attr("abs:src") : "");
-
-            Elements tags = toc.select(".novelgenres a");
-            List<String> subjects = new ArrayList<>();
-            for (Element tag : tags) {
-                subjects.add(tag.text());
-            }
-            metadata.setSubjects(subjects);
-        }
-
+        NovelMetadata metadata = parseMetadata(toc);
+        String coverUrl = parseCoverUrl(toc);
+        if (coverUrl != null) metadata.setBufferedCover(coverUrl);
         return metadata;
     }
 
@@ -108,7 +89,49 @@ public class secondlifetranslations_com implements Source {
         List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add(".code-block");
         blacklistedTags.add(".sharedaddy");
+        // A visible notice about where the translation is published, and the empty markers around it
+        blacklistedTags.add(".jmbl-disclaimer");
+        blacklistedTags.add("span.jmbl");
         return blacklistedTags;
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /** Reads the chapter list panel, in order. */
+    static List<Chapter> parseChapterList(Document novelPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        for (Element link : novelPage.select(".panel a[href]")) {
+            if (link.text().isBlank()) continue;
+            chapterList.add(new Chapter(link.text(), link.attr("abs:href")));
+        }
+        return chapterList;
+    }
+
+    /** Returns the chapter text, or null if the page has none. */
+    static Element parseChapterBody(Document chapterPage) {
+        return chapterPage.selectFirst(".entry-content");
+    }
+
+    /**
+     * Reads title, synopsis and genres. The cover is left to {@link #parseCoverUrl(Document)},
+     * because setting it on {@link NovelMetadata} downloads the image.
+     */
+    static NovelMetadata parseMetadata(Document novelPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = novelPage.selectFirst("meta[property=og:title]");
+        Element description = novelPage.selectFirst(".novel-entry-content");
+
+        if (title != null) metadata.setTitle(title.attr("content"));
+        if (description != null) metadata.setDescription(description.text());
+        metadata.setSubjects(novelPage.select(".novelgenres a").eachText());
+        return metadata;
+    }
+
+    static String parseCoverUrl(Document novelPage) {
+        Element cover = novelPage.selectFirst(".novelcover");
+        return cover == null ? null : cover.absUrl("src");
+    }
 }

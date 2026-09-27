@@ -4,21 +4,28 @@ import grabber.Chapter;
 import grabber.GrabberUtils;
 import grabber.Novel;
 import grabber.NovelMetadata;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.jsoup.Connection;
+import grabber.PaywallSite;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * BookNet sells chapters. The book page lists every chapter and marks the ones the visitor cannot read as locked;
+ * with the user's own login cookies, chapters they bought are unlocked. Locked chapters are left out.
+ */
+@PaywallSite("Chapters you haven't bought are locked and left out. Add your BookNet login in the account settings "
+        + "to download the chapters you bought.")
 public class booknet_com implements Source {
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
     private final String name = "BookNet";
     private final String url = "https://booknet.com/";
     private final boolean canHeadless = false;
@@ -51,25 +58,20 @@ public class booknet_com implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            Elements chapterLinks = toc.select(".js-chapter-change option");
-            for (Element chapterLink : chapterLinks) {
-                if (!chapterLink.attr("value").isEmpty()) {
-                    chapterList.add(new Chapter(
-                            chapterLink.text(),
-                            novel.novelLink.replace("/book/", "/reader/") + "?c=" + chapterLink.attr("value")
-                    ));
-                }
+            toc = fetch(novel.novelLink);
+            chapterList = parseChapterList(toc);
+            int locked = countLockedChapters(toc);
+            if (locked > 0) {
+                GrabberUtils.info(novel.window, locked + " chapters of this book are paid and locked, so they are left out. "
+                        + "To download chapters you bought, add your BookNet login in the account settings.");
+            }
+            if (chapterList.isEmpty() && locked == 0) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             }
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
         }
         return chapterList;
     }
@@ -77,69 +79,21 @@ public class booknet_com implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Connection.Response response = Jsoup.connect(chapter.chapterURL)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .method(Connection.Method.GET)
-                    .execute();
-            Document doc = response.parse();
-            if(doc.selectFirst("title").text().equals("Mature")) {
-                GrabberUtils.err(novel.window, "Mature story. Requires an account to access.");
-                return chapterBody; // Return empty chapter body
-            }
-            String csrf = doc.selectFirst("meta[name=csrf-token]").attr("content");
-            String chapterId = doc.selectFirst(".js-chapter-change option[selected]").attr("value");
-            StringBuilder content = new StringBuilder();
-            int page = 1;
-            while (true) {
-                GrabberUtils.sleep(500);
-                String json = Jsoup.connect("https://booknet.com/reader/get-page")
-                        .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                        .ignoreContentType(true)
-                        .data("chapterId", chapterId)
-                        .data("page", String.valueOf(page++))
-                        .data("_csrf", csrf)
-                        .cookies(response.cookies())
-                        .cookies(novel.cookies)
-                        .method(Connection.Method.POST)
-                        .execute().body();
-                JSONObject jsonObject = (JSONObject) new JSONParser().parse(json);
-                content.append((String) jsonObject.get("data"));
-                if ((boolean) jsonObject.get("isLastPage")) break;
-            }
-            chapterBody = Jsoup.parse(content.toString());
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
-            GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr), httpEr);
+            GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (ParseException e) {
-            GrabberUtils.err(novel.window, "Could not parse response!", e);
         }
-        GrabberUtils.sleep(2000);
         return chapterBody;
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
+        if (toc == null) return new NovelMetadata();
 
-        if (toc != null) {
-            Element title = toc.selectFirst(".roboto");
-            Element author = toc.selectFirst(".author");
-            Element desc = toc.selectFirst("#annotation");
-
-            metadata.setTitle(title != null ? title.text() : "");
-            metadata.setAuthor(author != null ? author.text() : "");
-            metadata.setDescription(desc != null ? desc.text() : "");
-            metadata.setBufferedCover(toc.selectFirst(".book-view-cover img").attr("abs:src"));
-
-            Elements tags = toc.select(".book-view-info-coll p:has(span.meta-name) a");
-            List<String> subjects = new ArrayList<>();
-            for (Element tag : tags) {
-                subjects.add(tag.text());
-            }
-            metadata.setSubjects(subjects);
-        }
-
+        NovelMetadata metadata = parseMetadata(toc);
+        String coverUrl = parseCoverUrl(toc);
+        if (coverUrl != null) metadata.setBufferedCover(coverUrl);
         return metadata;
     }
 
@@ -150,4 +104,59 @@ public class booknet_com implements Source {
         return blacklistedTags;
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /**
+     * Reads the chapters the visitor can open, in order. Locked (paid) chapters are left out.
+     */
+    static List<Chapter> parseChapterList(Document bookPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        for (Element item : bookPage.select(".bn_book__chapters-item:not(.lock)")) {
+            Element link = item.selectFirst("a.bn_book__chapters-item-link[href]");
+            Element title = item.selectFirst(".bn_book__chapters-item-title");
+            if (link == null || title == null || title.text().isBlank()) continue;
+            chapterList.add(new Chapter(title.text(), link.attr("abs:href")));
+        }
+        return chapterList;
+    }
+
+    /** The number of chapters the page marks as locked for this visitor. */
+    static int countLockedChapters(Document bookPage) {
+        return bookPage.select(".bn_book__chapters-item.lock").size();
+    }
+
+    /**
+     * Returns the chapter text, or null if the page has none (e.g. a locked chapter).
+     */
+    static Element parseChapterBody(Document readerPage) {
+        return readerPage.selectFirst(".reader-text");
+    }
+
+    /**
+     * Reads title, author, description, genre and tags. The cover is left to {@link #parseCoverUrl(Document)},
+     * because setting it on {@link NovelMetadata} downloads the image.
+     */
+    static NovelMetadata parseMetadata(Document bookPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = bookPage.selectFirst("h1.bn_book__header-title");
+        Element author = bookPage.selectFirst(".bn_book__header-author-item-name");
+        Element description = bookPage.selectFirst(".bn_book__about-content");
+
+        if (title != null) metadata.setTitle(title.text());
+        // The name is followed by the person's role, e.g. "Anna Románova · autor"
+        if (author != null) metadata.setAuthor(author.text().split(" · ")[0].strip());
+        if (description != null) metadata.setDescription(description.text());
+        List<String> subjects = new ArrayList<>(bookPage.select("a.bn_book__header-genre").eachText());
+        subjects.addAll(bookPage.select(".bn_book__tags a").eachText());
+        metadata.setSubjects(subjects);
+        return metadata;
+    }
+
+    static String parseCoverUrl(Document bookPage) {
+        Element cover = bookPage.selectFirst("img.bn_book__header-image-src");
+        return cover == null ? null : cover.absUrl("src");
+    }
 }

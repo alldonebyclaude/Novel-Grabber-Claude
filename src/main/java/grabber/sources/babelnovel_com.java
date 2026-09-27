@@ -1,38 +1,48 @@
 package grabber.sources;
 
 import grabber.Chapter;
+import grabber.Driver;
 import grabber.GrabberUtils;
 import grabber.Novel;
 import grabber.NovelMetadata;
+import grabber.PaywallSite;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.jsoup.Connection;
-import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.openqa.selenium.WebDriverException;
 
-import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * BabelNovel answers plain requests with a Cloudflare block, so every page is loaded in the app's browser. The
+ * chapter list page ({@code /books/<slug>/chapters}) renders from its {@code __NEXT_DATA__}, which also has the
+ * book's details. The list doesn't say which chapters are locked: a locked chapter's page shows an unlock panel
+ * over a short preview, and such chapters are skipped.
+ */
+@PaywallSite("Locked chapters are skipped; free chapters, and chapters you bought with your own login, are downloaded.")
 public class babelnovel_com implements Source {
+    private static final Duration BOT_CHECK_WAIT = Duration.ofSeconds(30);
+    private static final Pattern BOOK = Pattern.compile("(https?://[^/]*babelnovel\\.com/books/[^/?#]+)");
+
     private final String name = "BabelNovel";
     private final String url = "https://babelnovel.com/";
-    private final boolean canHeadless = false;
+    private final boolean canHeadless = true;
     private Novel novel;
     private Document toc;
-    private String bookId;
-    private String token;
-
-    public babelnovel_com() {
-    }
 
     public babelnovel_com(Novel novel) {
         this.novel = novel;
+    }
+
+    public babelnovel_com() {
     }
 
     public String getName() {
@@ -53,129 +63,169 @@ public class babelnovel_com implements Source {
 
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
+        String listUrl = chapterListUrl(novel.novelLink);
+        if (listUrl == null) {
+            GrabberUtils.err(novel.window, "Could not find the book in the link. Correct novel link?");
+            return chapterList;
+        }
         try {
-
-            toc = Jsoup.connect(novel.novelLink)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            bookId = toc.selectFirst("a[data-bca-book-id]").attr("data-bca-book-id");
-            String apiUrl = "https://api.babelnovel.com/v1/books/"+ bookId;
-            String json;
-            // With login, they put the token as a header
-            if (!novel.cookies.isEmpty()) {
-                token = novel.cookies.get("_bc_novel_token");
-                json = Jsoup.connect(apiUrl + "/chapters?bookId=" + bookId + "&pageSize=9999&page=0&fields=id,name,canonicalName,isBought,isFree,isLimitFree&orderBy=asc")
-                        .ignoreContentType(true)
-                        .header("token", token)
-                        .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                        .cookies(novel.cookies)
-                        .method(Connection.Method.GET)
-                        .execute()
-                        .body();
+            toc = load(listUrl);
+            chapterList = parseChapterList(toc);
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             } else {
-                json = Jsoup.connect(apiUrl + "/chapters?bookId=" + bookId + "&pageSize=9999&page=0&fields=id,name,canonicalName,isBought,isFree,isLimitFree&orderBy=asc")
-                        .ignoreContentType(true)
-                        .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                        .cookies(novel.cookies)
-                        .method(Connection.Method.GET)
-                        .execute()
-                        .body();
+                GrabberUtils.info(novel.window, "Locked chapters are skipped. To download chapters you bought, "
+                        + "add your BabelNovel login in the account settings.");
             }
-            JSONObject jsonObject = (JSONObject) new JSONParser().parse(json);
-            JSONArray data = (JSONArray) jsonObject.get("data");
-            for (Object chapterObj: data) {
-                JSONObject chapter = (JSONObject) chapterObj;
-                boolean isFree = (boolean) chapter.get("isFree");
-                boolean isLimitFree = (boolean) chapter.get("isLimitFree");
-                boolean isBought = (boolean) chapter.get("isBought");
-                // Only add if available
-                if (isFree || isLimitFree || isBought) {
-                    String chapterName = (String) chapter.get("name");
-                    String chapterId = (String) chapter.get("id");
-                    chapterList.add(new Chapter(chapterName, apiUrl + "/chapters/" + chapterId + "/content"));
-                }
-            }
-        } catch (HttpStatusException httpEr) {
-            GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
-        } catch (IOException e) {
-            GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (ParseException e) {
-            GrabberUtils.err(novel.window, "JSON parse error!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
+        } catch (WebDriverException e) {
+            GrabberUtils.err(novel.window, "Could not load the page in the browser: " + e.getMessage().split("\n")[0], e);
         }
         return chapterList;
     }
 
     public Element getChapterContent(Chapter chapter) {
-        Element chapterBody = new Element("div");
         try {
-            String json;
-            if (token != null) {
-                json = Jsoup.connect(chapter.chapterURL)
-                        .header("token", token)
-                        .ignoreContentType(true)
-                        .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                        .cookies(novel.cookies)
-                        .method(Connection.Method.GET)
-                        .execute()
-                        .body();
-            } else {
-                json = Jsoup.connect(chapter.chapterURL)
-                        .ignoreContentType(true)
-                        .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                        .cookies(novel.cookies)
-                        .method(Connection.Method.GET)
-                        .execute()
-                        .body();
+            Document page = load(chapter.chapterURL);
+            if (isLocked(page)) {
+                GrabberUtils.err(novel.window, chapter.name + " is locked, so it is skipped.");
+                return null;
             }
-            JSONObject jsonObject = (JSONObject) new JSONParser().parse(json);
-            JSONObject data = (JSONObject) jsonObject.get("data");
-            String content = (String) data.get("content");
-            String[] sentences = content.split("\\n\\n");
-            for (String sentence: sentences) {
-                Element paragraph = new Element("p");
-                paragraph.appendText(sentence);
-                chapterBody.appendChild(paragraph);
-            }
-        } catch (HttpStatusException httpEr) {
-            GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
-        } catch (IOException e) {
-            GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (ParseException e) {
-            GrabberUtils.err(novel.window, "JSON parse error!", e);
+            return parseChapterBody(page);
+        } catch (WebDriverException e) {
+            GrabberUtils.err(novel.window, "Could not load the page in the browser: " + e.getMessage().split("\n")[0], e);
+            return null;
         }
-        return chapterBody;
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
+        if (toc == null) return new NovelMetadata();
 
-        if (toc != null) {
-            Element title = toc.selectFirst("ol > li:last-child");
-            Element desc = toc.selectFirst("meta[property=og:description]");
-            Element cover = toc.selectFirst("meta[property=og:image]");
-
-            metadata.setTitle(title != null ? title.text() : "");
-            metadata.setDescription(desc != null ? desc.attr("content") : "");
-            metadata.setBufferedCover(cover != null ? cover.attr("abs:content")
-                    .replace(" ", "%20") : "");
-
-            Elements tags = toc.select("div[class^=tags_group] a");
-            List<String> subjects = new ArrayList<>();
-            for (Element tag : tags) {
-                subjects.add(tag.text());
-            }
-            metadata.setSubjects(subjects);
-        }
-
+        NovelMetadata metadata = parseMetadata(toc);
+        String coverUrl = parseCoverUrl(toc);
+        if (coverUrl != null) metadata.setBufferedCover(coverUrl);
         return metadata;
     }
 
     public List<String> getBlacklistedTags() {
         List<String> blacklistedTags = new ArrayList<>();
+        // The chapter title above the text
+        blacklistedTags.add("h3[class*=chapter_title]");
+        blacklistedTags.add("script");
         return blacklistedTags;
     }
 
+    private Driver browser() {
+        if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window, novel.browser);
+        return novel.headlessDriver;
+    }
+
+    /** Loads a page in the browser. If the site shows its bot check first, waits for the browser to get past it. */
+    private Document load(String pageUrl) {
+        Driver browser = browser();
+        browser.driver.navigate().to(pageUrl);
+        long deadline = System.currentTimeMillis() + BOT_CHECK_WAIT.toMillis();
+        while (String.valueOf(browser.driver.getTitle()).contains("Just a moment") && System.currentTimeMillis() < deadline) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return Jsoup.parse(browser.driver.getPageSource(), browser.driver.getCurrentUrl());
+    }
+
+    /** The chapter list page for a link to the book or one of its chapters, or null. */
+    static String chapterListUrl(String link) {
+        Matcher book = BOOK.matcher(link);
+        return book.find() ? book.group(1) + "/chapters" : null;
+    }
+
+    /** The page's cached data ({@code props.pageProps.cacheData} of its {@code __NEXT_DATA__}), or null. */
+    private static JSONObject cacheData(Document page) {
+        Element script = page.selectFirst("script#__NEXT_DATA__");
+        if (script == null) return null;
+        String data = script.data().strip();
+        // The browser may wrap the script in CDATA markers
+        if (data.startsWith("//<![CDATA[")) data = data.substring("//<![CDATA[".length());
+        if (data.endsWith("//]]>")) data = data.substring(0, data.length() - "//]]>".length());
+        try {
+            JSONObject next = (JSONObject) new JSONParser().parse(data.strip());
+            JSONObject props = (JSONObject) next.get("props");
+            JSONObject pageProps = props == null ? null : (JSONObject) props.get("pageProps");
+            return pageProps == null ? null : (JSONObject) pageProps.get("cacheData");
+        } catch (ParseException | ClassCastException e) {
+            return null;
+        }
+    }
+
+    /** The cached entry whose key starts with {@code prefix}, e.g. {@code bookId-cold-showers}. */
+    private static Object cached(Document page, String prefix) {
+        JSONObject data = cacheData(page);
+        if (data == null) return null;
+        for (Object key : data.keySet()) {
+            if (key.toString().startsWith(prefix)) return data.get(key);
+        }
+        return null;
+    }
+
+    private static String stringField(JSONObject object, String key) {
+        Object value = object == null ? null : object.get(key);
+        return value == null ? null : value.toString().strip();
+    }
+
+    /** Reads every chapter of the book from the chapter list page's data, in order. */
+    static List<Chapter> parseChapterList(Document chapterListPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        if (!(cached(chapterListPage, "chapters-page-chapters-") instanceof JSONArray chapters)) return chapterList;
+        String listUrl = chapterListPage.location().replaceAll("[?#].*$", "").replaceAll("/+$", "");
+        for (Object item : chapters) {
+            if (!(item instanceof JSONObject chapter)) continue;
+            String name = stringField(chapter, "name");
+            String slug = stringField(chapter, "canonicalName");
+            if (name == null || slug == null) continue;
+            chapterList.add(new Chapter(name, listUrl + "/" + slug));
+        }
+        return chapterList;
+    }
+
+    /** Whether the chapter page shows the unlock panel instead of the chapter. */
+    static boolean isLocked(Document chapterPage) {
+        return chapterPage.selectFirst("[class*=unlock-chapter_container]") != null;
+    }
+
+    /** Returns the chapter text, or null if the page has none or the chapter is locked (only a preview shows). */
+    static Element parseChapterBody(Document chapterPage) {
+        if (isLocked(chapterPage)) return null;
+        return chapterPage.selectFirst("article[class*=chapter_container] > section");
+    }
+
+    /**
+     * Reads title, author, synopsis and genres from the page's data. The cover is left to
+     * {@link #parseCoverUrl(Document)}, because setting it on {@link NovelMetadata} downloads the image.
+     */
+    static NovelMetadata parseMetadata(Document page) {
+        NovelMetadata metadata = new NovelMetadata();
+        if (!(cached(page, "bookId-") instanceof JSONObject book)) return metadata;
+
+        String title = stringField(book, "name");
+        String author = stringField(book, "authorName");
+        String synopsis = stringField(book, "synopsis");
+        if (title != null) metadata.setTitle(title);
+        if (author != null) metadata.setAuthor(author);
+        if (synopsis != null) metadata.setDescription(synopsis);
+        if (book.get("genres") instanceof JSONArray genres) {
+            List<String> subjects = new ArrayList<>();
+            for (Object genre : genres) {
+                String genreName = genre instanceof JSONObject object ? stringField(object, "name") : null;
+                if (genreName != null) subjects.add(genreName);
+            }
+            metadata.setSubjects(subjects);
+        }
+        return metadata;
+    }
+
+    static String parseCoverUrl(Document page) {
+        return cached(page, "bookId-") instanceof JSONObject book ? stringField(book, "cover") : null;
+    }
 }

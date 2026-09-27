@@ -1,0 +1,157 @@
+{
+ "book": {
+  "id": 24584,
+  "user_id": 14206,
+  "title": "箱庭の蝶が見る夢は",
+  "description": "表紙:ぶた子様（転載禁止）\r\n\r\n【Dom/Subユニバースとは】\r\n大前提↓\r\n◎Dom    支配したい\r\n◎Sub     支配されたい\r\n　男女の性とは異なる性（Dom、Sub）がある世界。互いにフェロモンを発し、SubがDomにコントロールを預けることで関係が成立する。\r\n\r\n【あらすじ】\r\nSubの高校生、竹花蒼生（たけはなあおい）は、Domである下級生の藤堂旭（とうどうあさひ）から酷い扱いを受けていた。\r\n本能には抗えず、旭の命令に従い続けていた蒼生だが、そんなある日、突然転機が訪れて――。\r\n\r\n＊最初のほうに暴力的なシーンがあります。また、Dom/Subユニバースの設定上、SM的な描写があります。\r\n苦手な方は読まないでください。\r\n\r\n受は必ず幸せにします。",
+  "created_at": "2022-04-22T11:24:09.000+09:00",
+  "updated_at": "2025-04-23T03:35:40.000+09:00",
+  "summary": "R18　Dom/Subユニバース設定の作品です",
+  "completed": false,
+  "story_count": 41,
+  "character_count": 43955,
+  "subscribe_count": 266,
+  "bookmark_count": 236,
+  "first_published_at": "2022-04-22T12:46:46.000+09:00",
+  "last_published_at": "2025-04-23T03:35:40.000+09:00",
+  "cover": {
+   "url": "https://fujossy-production.s3.amazonaws.com/uploads/book/cover/24584/20220714_235648.jpg",
+   "micro": {
+    "url": "https://fujossy-production.s3.amazonaws.com/uploads/book/cover/24584/micro_20220714_235648.jpg"
+   },
+   "small": {
+    "url": "https://fujossy-production.s3.amazonaws.com/uploads/book/cover/24584/small_20220714_235648.jpg"
+   }
+  },
+  "published": true,
+  "evaluable": false,
+  "official": true,
+  "rate_status": "general",
+  "rankable": true,
+  "commentable_type": "only_user",
+  "count_reactions": [
+   {
+    "emotion": "good",
+    "count": 1779
+   },
+   {
+    "emotion": "laugh",
+    "count": 15
+   },
+   {
+    "emotion": "moe",
+    "count": 427
+   },
+   {
+    "emotion": "cry",
+    "count": 746
+   },
+   {
+    "emotion": "erotic",
+    "count": 339
+   },
+   {
+    "emotion": "precious",
+    "count": 551
+   }
+  ],
+  "preloaded_affiliates": [],
+  "tag_names": [
+   {
+    "id": 20,
+    "name": "R18"
+   },
+   {
+    "id": 1838,
+    "name": "Dom/Subユニバース"
+   },
+   {
+    "id": 10631,
+    "name": "D/Sユニバース"
+   },
+   {
+    "id": 64,
+    "name": "溺愛"
+   },
+   {
+    "id": 8,
+    "name": "S攻め"
+   }
+  ],
+  "contest_tag_names": [],
+  "review_rate": 5.0,
+  "comment_count": 14,
+  "cover_url": {
+   "original": {
+    "small": "/uploads/book/cover/24584/small_20220714_235648.jpg",
+    "default": "/uploads/book/cover/24584/20220714_235648.jpg"
+   },
+   "safe": {
+    "small": "/uploads/book/cover/24584/small_20220714_235648.jpg",
+    "default": "/uploads/book/cover/24584/20220714_235648.jpg"
+   }
+  },
+  "user": {
+   "username": "okonogiyukiha",
+   "display_name": "小此木雪花"
+  },
+  "nominees": [],
+  "owned_events": [
+   {
+    "id": 114,
+    "name": "【バース系】をもっと知りたい🌷"
+   }
+  ],
+  "book_reviews": [],
+  "stories": [
+   {
+    "id": 505579,
+    "title": "Dom/Subユニバースの世界観",
+    "published_at": "2022-07-02T05:06:45.000+09:00"
+   },
+   {
+    "id": 505587,
+    "title": "1",
+    "published_at": "2022-04-22T12:47:24.000+09:00"
+   },
+   {
+    "id": 505589,
+    "title": "2",
+    "published_at": "2022-07-23T08:11:44.000+09:00"
+   },
+   {
+    "id": 606266,
+    "title": "39",
+    "published_at": "2024-05-01T05:06:57.000+09:00"
+   },
+   {
+    "id": 606968,
+    "title": "40",
+    "published_at": "2024-05-26T22:09:46.000+09:00"
+   }
+  ],
+  "tags": [
+   {
+    "id": 20,
+    "name": "R18"
+   },
+   {
+    "id": 1838,
+    "name": "Dom/Subユニバース"
+   },
+   {
+    "id": 10631,
+    "name": "D/Sユニバース"
+   },
+   {
+    "id": 64,
+    "name": "溺愛"
+   },
+   {
+    "id": 8,
+    "name": "S攻め"
+   }
+  ],
+  "awards": []
+ }
+}

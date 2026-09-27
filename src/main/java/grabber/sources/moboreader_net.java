@@ -4,6 +4,7 @@ import grabber.Chapter;
 import grabber.GrabberUtils;
 import grabber.Novel;
 import grabber.NovelMetadata;
+import grabber.PaywallSite;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -14,6 +15,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@PaywallSite("Not working yet. The site was rebuilt and sells its chapters; the source will be rebuilt later to "
+        + "download free chapters, and chapters you bought with your own login.")
 public class moboreader_net implements Source {
     private final String name = "MoboReader";
     private final String url = "https://www.moboreader.net/";

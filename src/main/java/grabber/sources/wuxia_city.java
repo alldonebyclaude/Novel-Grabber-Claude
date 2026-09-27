@@ -8,14 +8,20 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * wuxia.city. The novel page lists all chapters, newest first.
+ */
 public class wuxia_city implements Source {
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
     private final String name = "WuxiaCity";
     private final String url = "https://wuxia.city/";
     private final boolean canHeadless = false;
@@ -48,23 +54,15 @@ public class wuxia_city implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            Document chapterPage = Jsoup.connect(toc.selectFirst(".book-tabs a:last-child").attr("abs:href")).get();
-            Elements chapterLinks = chapterPage.select("ul.chapters a");
-            for (Element chapterLink : chapterLinks) {
-                chapterLink.selectFirst("span.chapter-num").remove();
-                chapterList.add(new Chapter(chapterLink.selectFirst(".chapter-name").text(), chapterLink.attr("abs:href")));
+            toc = fetch(novel.novelLink);
+            chapterList = parseChapterList(toc);
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             }
-            Collections.reverse(chapterList);
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
         }
         return chapterList;
     }
@@ -72,11 +70,7 @@ public class wuxia_city implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            chapterBody = doc.selectFirst("div.chapter-content");
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
@@ -86,33 +80,67 @@ public class wuxia_city implements Source {
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
+        if (toc == null) return new NovelMetadata();
 
-        if (toc != null) {
-            Element title = toc.selectFirst("meta[property=og:title]");
-            Element author = toc.selectFirst("dl.author dd");
-            Element desc = toc.selectFirst(".book-synopsis");
-            Element cover = toc.selectFirst("meta[property=og:image]");
-
-            metadata.setTitle(title != null ? title.attr("content") : "");
-            metadata.setAuthor(author != null ? author.text() : "");
-            metadata.setDescription(desc != null ? desc.text().replace("Synopsis", "") : "");
-            metadata.setBufferedCover(cover != null ? cover.attr("abs:content") : "");
-
-            Elements tags = toc.select(".book-generes span");
-            List<String> subjects = new ArrayList<>();
-            for (Element tag : tags) {
-                subjects.add(tag.text());
-            }
-            metadata.setSubjects(subjects);
-        }
-
+        NovelMetadata metadata = parseMetadata(toc);
+        String coverUrl = parseCoverUrl(toc);
+        if (coverUrl != null) metadata.setBufferedCover(coverUrl);
         return metadata;
     }
 
     public List<String> getBlacklistedTags() {
-        List<String> blacklistedTags = new ArrayList<>();
-        return blacklistedTags;
+        return new ArrayList<>();
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /**
+     * Reads the chapter list from the novel page and returns it oldest first. Each entry shows the chapter
+     * number in a badge in front of the name, which is left out.
+     */
+    static List<Chapter> parseChapterList(Document novelPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        for (Element link : novelPage.select("ul.chapters a[href]")) {
+            Element chapterName = link.selectFirst(".chapter-name");
+            if (chapterName == null) continue;
+            chapterName = chapterName.clone();
+            chapterName.select("span.chapter-num").remove();
+            chapterList.add(new Chapter(chapterName.text(), link.attr("abs:href")));
+        }
+        Collections.reverse(chapterList);
+        return chapterList;
+    }
+
+    /**
+     * Returns the chapter text, or null if the page has none.
+     */
+    static Element parseChapterBody(Document chapterPage) {
+        return chapterPage.selectFirst("div.chapter-content");
+    }
+
+    /**
+     * Reads title, author, description and genres. The cover is left to {@link #parseCoverUrl(Document)},
+     * because setting it on {@link NovelMetadata} downloads the image.
+     */
+    static NovelMetadata parseMetadata(Document novelPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = novelPage.selectFirst("meta[property=og:title]");
+        Element author = novelPage.selectFirst("dl.author dd");
+        Element description = novelPage.selectFirst(".book-synopsis");
+
+        if (title != null) metadata.setTitle(title.attr("content").strip());
+        if (author != null) metadata.setAuthor(author.text());
+        // The synopsis starts with its "Synopsis" heading
+        if (description != null) metadata.setDescription(description.text().replaceFirst("^Synopsis\\s*", ""));
+        metadata.setSubjects(novelPage.select(".book-generes span").eachText());
+        return metadata;
+    }
+
+    static String parseCoverUrl(Document novelPage) {
+        Element cover = novelPage.selectFirst("meta[property=og:image]");
+        return cover == null || cover.attr("content").isBlank() ? null : cover.absUrl("content");
+    }
 }

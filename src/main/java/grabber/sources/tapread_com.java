@@ -4,6 +4,7 @@ import grabber.Chapter;
 import grabber.GrabberUtils;
 import grabber.Novel;
 import grabber.NovelMetadata;
+import grabber.PaywallSite;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -21,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+@PaywallSite("Not working yet. The site was rebuilt and sells VIP chapters; the source will be rebuilt later to "
+        + "download free chapters, and chapters you bought with your own login.")
 public class tapread_com implements Source {
     private final String name = "TapRead";
     private final String url = "https://tapread.com";

@@ -8,13 +8,17 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class asianhobbyist_com implements Source {
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
     private final String name = "Asian Hobbyist";
     private final String url = "https://www.asianhobbyist.com/";
     private final boolean canHeadless = false;
@@ -47,17 +51,15 @@ public class asianhobbyist_com implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
-            Elements chapterLinks = toc.select(".releases-wrap a.cell");
-            for (Element chapterLink : chapterLinks) {
-                chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
+            toc = fetch(novel.novelLink);
+            chapterList = parseChapterList(toc);
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             }
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
         }
         return chapterList;
     }
@@ -65,8 +67,7 @@ public class asianhobbyist_com implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL).cookies(novel.cookies).get();
-            chapterBody = doc.select(".entry-content").first();
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
@@ -76,17 +77,11 @@ public class asianhobbyist_com implements Source {
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
+        if (toc == null) return new NovelMetadata();
 
-        if (toc != null) {
-            Element title = toc.selectFirst(".details .entry-title");
-            Element desc = toc.selectFirst(".details .description");
-            String coverUrl = toc.selectFirst(".thumb img").attr("abs:data-lazy-src");
-            metadata.setTitle(title != null ? title.text() : "");
-            metadata.setDescription(desc != null ? desc.text() : "");
-            metadata.setBufferedCover(coverUrl);
-        }
-
+        NovelMetadata metadata = parseMetadata(toc);
+        String coverUrl = parseCoverUrl(toc);
+        if (coverUrl != null) metadata.setBufferedCover(coverUrl);
         return metadata;
     }
 
@@ -97,4 +92,54 @@ public class asianhobbyist_com implements Source {
         return blacklistedTags;
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /**
+     * Reads the release list, oldest first.
+     */
+    static List<Chapter> parseChapterList(Document novelPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        for (Element link : novelPage.select(".releases-wrap a.cell[href]")) {
+            chapterList.add(new Chapter(link.text(), link.attr("abs:href")));
+        }
+        return chapterList;
+    }
+
+    /**
+     * Returns the chapter text, or null if the page has none.
+     */
+    static Element parseChapterBody(Document chapterPage) {
+        return chapterPage.selectFirst(".entry-content");
+    }
+
+    /**
+     * Reads title and description. The cover is left to {@link #parseCoverUrl(Document)}, because setting it on
+     * {@link NovelMetadata} downloads the image.
+     */
+    static NovelMetadata parseMetadata(Document novelPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = novelPage.selectFirst(".details .entry-title");
+        Element description = novelPage.selectFirst(".details .description");
+
+        if (title != null) metadata.setTitle(title.text());
+        if (description != null) metadata.setDescription(description.text());
+        return metadata;
+    }
+
+    /**
+     * The cover is lazy loaded: {@code src} holds an inline placeholder until the page's script swaps in the image
+     * from {@code data-src} (older pages: {@code data-lazy-src}).
+     */
+    static String parseCoverUrl(Document novelPage) {
+        Element cover = novelPage.selectFirst(".thumb img");
+        if (cover == null) return null;
+        for (String attribute : List.of("data-src", "data-lazy-src", "src")) {
+            String coverUrl = cover.absUrl(attribute);
+            if (coverUrl.startsWith("http")) return coverUrl;
+        }
+        return null;
+    }
 }

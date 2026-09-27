@@ -1,5 +1,6 @@
 package grabber.sources;
 
+import grabber.PaywallSite;
 import grabber.Chapter;
 import grabber.GrabberUtils;
 import grabber.Novel;
@@ -17,6 +18,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@PaywallSite("Locked episodes are skipped. The site was redesigned and this source hasn't been checked against it "
+        + "yet; it will be rebuilt with the other paywall sites.")
 public class tapas_io implements Source {
     private final String name = "Tapas";
     private final String url = "https://tapas.io";

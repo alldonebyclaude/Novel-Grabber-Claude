@@ -8,15 +8,24 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * readnovelfull.com. The novel page shows part of the chapter list; the complete list comes from
+ * {@code ajax/chapter-archive?novelId=<id>}.
+ */
 public class readnovelfull_com implements Source {
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+    private static final String BASE_URL = "https://readnovelfull.com";
+
     private final String name = "ReadNovelFull";
-    private final String url = "https://readnovelfull.com/";
+    private final String url = BASE_URL + "/";
     private final boolean canHeadless = false;
     private Novel novel;
     private Document toc;
@@ -47,19 +56,20 @@ public class readnovelfull_com implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink).get();
-            String novelId = toc.select("#rating").attr("data-novel-id");
-            Document chapterPage = Jsoup.connect("https://readnovelfull.com/ajax/chapter-archive?novelId=" + novelId).get();
-            Elements chapterLinks = chapterPage.select(".list-chapter a");
-            for (Element chapterLink : chapterLinks) {
-                chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
+            toc = fetch(novel.novelLink);
+            String novelId = parseNovelId(toc);
+            if (novelId == null) {
+                GrabberUtils.err(novel.window, "Could not find the novel id. Correct novel link?");
+                return chapterList;
+            }
+            chapterList = parseChapterList(fetch(chapterListUrl(novelId)));
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not read the chapter list of novel " + novelId);
             }
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
         }
         return chapterList;
     }
@@ -67,8 +77,7 @@ public class readnovelfull_com implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL).get();
-            chapterBody = doc.select("#chr-content").first();
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
@@ -78,22 +87,11 @@ public class readnovelfull_com implements Source {
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
+        if (toc == null) return new NovelMetadata();
 
-        if (toc != null) {
-            metadata.setTitle(toc.select("h3.title").first().text());
-            metadata.setAuthor(toc.select(".info.info-meta li:contains(Author) a").first().text());
-            metadata.setDescription(toc.select(".desc-text").first().text());
-            metadata.setBufferedCover(toc.select(".book > img:nth-child(1)").attr("abs:src"));
-
-            Elements tags = toc.select(".info.info-meta li:contains(Genre) a");
-            List<String> subjects = new ArrayList<>();
-            for (Element tag : tags) {
-                subjects.add(tag.text());
-            }
-            metadata.setSubjects(subjects);
-        }
-
+        NovelMetadata metadata = parseMetadata(toc);
+        String coverUrl = parseCoverUrl(toc);
+        if (coverUrl != null) metadata.setBufferedCover(coverUrl);
         return metadata;
     }
 
@@ -106,4 +104,59 @@ public class readnovelfull_com implements Source {
         return blacklistedTags;
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /** The site's id of the novel, e.g. {@code 2454}, or null. */
+    static String parseNovelId(Document novelPage) {
+        Element rating = novelPage.selectFirst("#rating[data-novel-id]");
+        return rating == null || rating.attr("data-novel-id").isBlank() ? null : rating.attr("data-novel-id");
+    }
+
+    static String chapterListUrl(String novelId) {
+        return BASE_URL + "/ajax/chapter-archive?novelId=" + novelId;
+    }
+
+    /**
+     * Reads the chapter archive, oldest first.
+     */
+    static List<Chapter> parseChapterList(Document chapterArchive) {
+        List<Chapter> chapterList = new ArrayList<>();
+        for (Element link : chapterArchive.select(".list-chapter a[href]")) {
+            if (link.text().isBlank()) continue;
+            chapterList.add(new Chapter(link.text(), link.attr("abs:href")));
+        }
+        return chapterList;
+    }
+
+    /**
+     * Returns the chapter text, or null if the page has none.
+     */
+    static Element parseChapterBody(Document chapterPage) {
+        return chapterPage.selectFirst("#chr-content");
+    }
+
+    /**
+     * Reads title, author, description and genres. The cover is left to {@link #parseCoverUrl(Document)},
+     * because setting it on {@link NovelMetadata} downloads the image.
+     */
+    static NovelMetadata parseMetadata(Document novelPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = novelPage.selectFirst("h3.title");
+        Element author = novelPage.selectFirst(".info.info-meta li:contains(Author) a");
+        Element description = novelPage.selectFirst(".desc-text");
+
+        if (title != null) metadata.setTitle(title.text());
+        if (author != null) metadata.setAuthor(author.text());
+        if (description != null) metadata.setDescription(description.text());
+        metadata.setSubjects(novelPage.select(".info.info-meta li:contains(Genre) a").eachText());
+        return metadata;
+    }
+
+    static String parseCoverUrl(Document novelPage) {
+        Element cover = novelPage.selectFirst(".book > img");
+        return cover == null ? null : cover.absUrl("src");
+    }
 }

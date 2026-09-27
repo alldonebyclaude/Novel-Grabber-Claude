@@ -8,13 +8,17 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class royalroad_com implements Source {
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
     private final String name = "Royal Road";
     private final String url = "https://royalroad.com";
     private final boolean canHeadless = false;
@@ -47,17 +51,15 @@ public class royalroad_com implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
-            Elements chapterLinks = toc.select("td:not([class]) a");
-            for (Element chapterLink : chapterLinks) {
-                chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
+            toc = fetch(novel.novelLink);
+            chapterList = parseChapterList(toc);
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             }
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
         }
         return chapterList;
     }
@@ -65,8 +67,7 @@ public class royalroad_com implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL).cookies(novel.cookies).get();
-            chapterBody = doc.select(".chapter-content").first();
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
@@ -76,32 +77,63 @@ public class royalroad_com implements Source {
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
+        if (toc == null) return new NovelMetadata();
 
-        if (toc != null) {
-            Element title = toc.selectFirst("h1");
-            Element author = toc.selectFirst("h4 span a");
-            Element desc = toc.selectFirst(".description");
-
-            metadata.setTitle(title != null ? title.text() : "");
-            metadata.setAuthor(author != null ? author.text() : "");
-            metadata.setDescription(desc != null ? desc.text() : "");
-            metadata.setBufferedCover(toc.select("img.thumbnail").attr("abs:src"));
-
-            Elements tags = toc.select(".tags span");
-            List<String> subjects = new ArrayList<>();
-            for (Element tag : tags) {
-                subjects.add(tag.text());
-            }
-            metadata.setSubjects(subjects);
-        }
-
+        NovelMetadata metadata = parseMetadata(toc);
+        String coverUrl = parseCoverUrl(toc);
+        if (coverUrl != null) metadata.setBufferedCover(coverUrl);
         return metadata;
     }
 
     public List<String> getBlacklistedTags() {
-        List<String> blacklistedTags = new ArrayList<>();
-        return blacklistedTags;
+        return new ArrayList<>();
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /**
+     * Reads the chapter table. Each row links the chapter twice (title and release date); the first cell's
+     * link is the one with the title.
+     */
+    static List<Chapter> parseChapterList(Document novelPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        for (Element link : novelPage.select("tr.chapter-row td:first-child a[href]")) {
+            chapterList.add(new Chapter(link.text(), link.attr("abs:href")));
+        }
+        return chapterList;
+    }
+
+    /**
+     * Returns the chapter text, or null if the page has none. Royal Road hides an anti-piracy notice in each chapter
+     * with a {@code display: none} rule for a random class; it is kept unless the user chooses to remove hidden text
+     * (see {@link grabber.HiddenText}).
+     */
+    static Element parseChapterBody(Document chapterPage) {
+        return chapterPage.selectFirst(".chapter-content");
+    }
+
+    /**
+     * Reads title, author, description and tags. The cover is left to {@link #parseCoverUrl(Document)},
+     * because setting it on {@link NovelMetadata} downloads the image.
+     */
+    static NovelMetadata parseMetadata(Document novelPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = novelPage.selectFirst("h1");
+        Element author = novelPage.selectFirst("h4 span a");
+        Element description = novelPage.selectFirst(".description");
+
+        if (title != null) metadata.setTitle(title.text());
+        if (author != null) metadata.setAuthor(author.text());
+        if (description != null) metadata.setDescription(description.text());
+        metadata.setSubjects(novelPage.select(".tags a.fiction-tag").eachText());
+        return metadata;
+    }
+
+    static String parseCoverUrl(Document novelPage) {
+        Element cover = novelPage.selectFirst("img.thumbnail");
+        return cover == null ? null : cover.absUrl("src");
+    }
 }

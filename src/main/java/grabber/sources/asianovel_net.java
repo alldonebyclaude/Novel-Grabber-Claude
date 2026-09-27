@@ -1,31 +1,37 @@
 package grabber.sources;
 
 import grabber.Chapter;
+import grabber.Driver;
 import grabber.GrabberUtils;
 import grabber.Novel;
 import grabber.NovelMetadata;
-import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import org.openqa.selenium.WebDriverException;
 
-import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * asianovel.net answers plain requests with a Cloudflare bot check, so every page is loaded in the app's browser.
+ * The story page ({@code /story/<id>/}) lists the chapters ({@code /chapter/<slug>/}).
+ */
 public class asianovel_net implements Source {
+    private static final Duration BOT_CHECK_WAIT = Duration.ofSeconds(30);
+
     private final String name = "asianovel";
     private final String url = "https://www.asianovel.net/";
-    private final boolean canHeadless = false;
+    private final boolean canHeadless = true;
     private Novel novel;
     private Document toc;
 
-    public asianovel_net() {
-    }
-
     public asianovel_net(Novel novel) {
         this.novel = novel;
+    }
+
+    public asianovel_net() {
     }
 
     public String getName() {
@@ -47,87 +53,98 @@ public class asianovel_net implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            Elements paginationLinks = toc.select(".pagination li a");
-            if(paginationLinks != null &&!paginationLinks.isEmpty()) {
-                String canonicalUrl = toc.selectFirst("link[rel=canonical]").attr("abs:href");
-                Document temp = Jsoup.connect(canonicalUrl)
-                        .cookies(novel.cookies)
-                        .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                        .get();
-                Elements chapterLinks = temp.select(".summary-compact a");
-                for (Element chapterLink : chapterLinks) {
-                    chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
-                }
-                int lastPage = Integer.parseInt(paginationLinks.get(paginationLinks.size()-1).text());
-                for(int i = 2; i <= lastPage; i++) {
-                    temp = Jsoup.connect(canonicalUrl + "page/" + i)
-                            .cookies(novel.cookies)
-                            .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                            .get();
-                    chapterLinks = temp.select(".summary-compact a");
-                    for (Element chapterLink : chapterLinks) {
-                        chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
-                    }
-                }
+            toc = load(novel.novelLink);
+            chapterList = parseChapterList(toc);
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             }
-        } catch (HttpStatusException httpEr) {
-            GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
-        } catch (IOException e) {
-            GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
+        } catch (WebDriverException e) {
+            GrabberUtils.err(novel.window, "Could not load the page in the browser: " + e.getMessage().split("\n")[0], e);
         }
         return chapterList;
     }
 
     public Element getChapterContent(Chapter chapter) {
-        Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            chapterBody = doc.selectFirst("article");
-        } catch (HttpStatusException httpEr) {
-            GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
-        } catch (IOException e) {
-            GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
+            return parseChapterBody(load(chapter.chapterURL));
+        } catch (WebDriverException e) {
+            GrabberUtils.err(novel.window, "Could not load the page in the browser: " + e.getMessage().split("\n")[0], e);
+            return null;
         }
-        return chapterBody;
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
+        if (toc == null) return new NovelMetadata();
 
-        if (toc != null) {
-            Element title = toc.selectFirst("meta[property=og:title]");
-            Element author = toc.selectFirst("meta[name=author]");
-            Element desc = toc.selectFirst(".summary-classic__text:not(a)");
-            Element cover = toc.selectFirst("meta[property=og:image]");
-
-            metadata.setTitle(title != null ? title.attr("content") : "");
-            metadata.setAuthor(author != null ? author.attr("content") : "");
-            metadata.setDescription(desc != null ? desc.text() : "");
-            metadata.setBufferedCover(cover != null ? cover.attr("content") : "");
-
-            Elements tags = toc.select(".taxo .taxo__text");
-            List<String> subjects = new ArrayList<>();
-            for (Element tag : tags) {
-                subjects.add(tag.text());
-            }
-            metadata.setSubjects(subjects);
-        }
-
+        NovelMetadata metadata = parseMetadata(toc);
+        String coverUrl = parseCoverUrl(toc);
+        if (coverUrl != null) metadata.setBufferedCover(coverUrl);
         return metadata;
     }
 
     public List<String> getBlacklistedTags() {
         List<String> blacklistedTags = new ArrayList<>();
+        // Ad slots above and below the text
+        blacklistedTags.add("[class*=asian-ads]");
+        blacklistedTags.add("script");
         return blacklistedTags;
     }
 
+    private Driver browser() {
+        if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window, novel.browser);
+        return novel.headlessDriver;
+    }
+
+    /** Loads a page in the browser. If the site shows its bot check first, waits for the browser to get past it. */
+    private Document load(String pageUrl) {
+        Driver browser = browser();
+        browser.driver.navigate().to(pageUrl);
+        long deadline = System.currentTimeMillis() + BOT_CHECK_WAIT.toMillis();
+        while (String.valueOf(browser.driver.getTitle()).contains("Just a moment") && System.currentTimeMillis() < deadline) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return Jsoup.parse(browser.driver.getPageSource(), browser.driver.getCurrentUrl());
+    }
+
+    /** Reads the story's chapter list, in order. */
+    static List<Chapter> parseChapterList(Document storyPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        for (Element link : storyPage.select("ol.chapter-group__list li a[href*=/chapter/]")) {
+            if (link.text().isBlank()) continue;
+            chapterList.add(new Chapter(link.text(), link.attr("abs:href")));
+        }
+        return chapterList;
+    }
+
+    /** Returns the chapter text, or null if the page has none. */
+    static Element parseChapterBody(Document chapterPage) {
+        return chapterPage.selectFirst("article.chapter__article div.chapter-formatting");
+    }
+
+    /**
+     * Reads title, author, summary and genres. The cover is left to {@link #parseCoverUrl(Document)},
+     * because setting it on {@link NovelMetadata} downloads the image.
+     */
+    static NovelMetadata parseMetadata(Document storyPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = storyPage.selectFirst("h1");
+        Element author = storyPage.selectFirst("a[href*=/author/]");
+        Element summary = storyPage.selectFirst("section.story__summary");
+
+        if (title != null) metadata.setTitle(title.text());
+        if (author != null) metadata.setAuthor(author.text());
+        if (summary != null) metadata.setDescription(summary.text());
+        metadata.setSubjects(storyPage.select("a[href*=/genre/]").eachText().stream().distinct().toList());
+        return metadata;
+    }
+
+    static String parseCoverUrl(Document storyPage) {
+        Element cover = storyPage.selectFirst("meta[property=og:image]");
+        return cover == null || cover.attr("content").isBlank() ? null : cover.absUrl("content");
+    }
 }

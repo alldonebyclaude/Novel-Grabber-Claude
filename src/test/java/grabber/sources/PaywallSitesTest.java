@@ -14,9 +14,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PaywallSitesTest {
 
-    // Sites that sell their chapters. Their sources don't work with the current sites and will be rebuilt, for free
-    // and bought chapters only, once all sources have tests.
-    private static final Set<String> PAYWALL_SITES = Set.of("dreame_com", "goodnovel_com");
+    // Sites that sell their chapters. BookNet's, jjwxc's, Wattpad's, iQIYI's and BabelNovel's sources skip locked chapters; Dreame's, GoodNovel's,
+    // MoboReader's and TapRead's don't work with the current sites and will be rebuilt, for free and bought chapters
+    // only, once all sources have tests.
+    private static final Set<String> PAYWALL_SITES = Set.of("booknet_com", "dreame_com", "goodnovel_com", "jjwxc_net",
+            "moboreader_net", "tapread_com", "wattpad_com", "wenxue_iqiyi_com", "babelnovel_com",
+            "tapas_io");
 
     @Test
     void exactlyThePaywallSitesAreMarked() throws Exception {

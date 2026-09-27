@@ -8,13 +8,25 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/**
+ * FanFiktion.de. A story's first page is its first chapter; the chapter selector ({@code #kA}) lists all chapters by
+ * number, and a chapter's URL is the story URL with that number: {@code /s/<id>/<number>/<title>}.
+ */
 public class fanfiktion_de implements Source {
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+    /** A story URL split around its chapter number. */
+    private static final Pattern STORY_URL = Pattern.compile("^(.*/s/[^/]+/)\\d+(/.*)$");
+
     private final String name = "FanFiktion";
     private final String url = "https://fanfiktion.de";
     private final boolean canHeadless = false;
@@ -47,20 +59,15 @@ public class fanfiktion_de implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
-            Elements chapterLinks = toc.select("#kA option");
-            String fullLink = toc.select("link[rel=canonical]").attr("abs:href");
-            String baseLinkStart = fullLink.substring(0, GrabberUtils.ordinalIndexOf(fullLink, "/", 5) + 1);
-            String baseLinkEnd = fullLink.substring(baseLinkStart.length() + 1);
-            chapterLinks = chapterLinks.select("option[value]");
-            for (int i = 0; i < chapterLinks.size(); i++)
-                chapterList.add(new Chapter(chapterLinks.get(i).text(), baseLinkStart + chapterLinks.get(i).attr("value") + baseLinkEnd));
+            toc = fetch(novel.novelLink);
+            chapterList = parseChapterList(toc);
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct story link?");
+            }
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
         }
         return chapterList;
     }
@@ -68,8 +75,7 @@ public class fanfiktion_de implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL).cookies(novel.cookies).get();
-            chapterBody = doc.select(".user-formatted-inner").first();
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
@@ -79,19 +85,54 @@ public class fanfiktion_de implements Source {
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
-
-        if (toc != null) {
-            metadata.setTitle(toc.select(".huge-font").first().text());
-            metadata.setAuthor(toc.select("a.no-wrap").first().text());
-        }
-
-        return metadata;
+        return toc == null ? new NovelMetadata() : parseMetadata(toc);
     }
 
     public List<String> getBlacklistedTags() {
-        List<String> blacklistedTags = new ArrayList<>();
-        return blacklistedTags;
+        return new ArrayList<>();
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /**
+     * Reads the chapter selector of a story page. The chapter URLs are the story's canonical URL with the chapter
+     * number replaced. Empty if the page has no selector or canonical link.
+     */
+    static List<Chapter> parseChapterList(Document storyPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        Element canonical = storyPage.selectFirst("link[rel=canonical]");
+        Matcher storyUrl = STORY_URL.matcher(canonical == null ? "" : canonical.attr("abs:href"));
+        if (!storyUrl.matches()) return chapterList;
+        for (Element option : storyPage.select("#kA option[value]")) {
+            String number = option.val().strip();
+            if (number.isEmpty()) continue;
+            chapterList.add(new Chapter(option.text(), storyUrl.group(1) + number + storyUrl.group(2)));
+        }
+        return chapterList;
+    }
+
+    /**
+     * Returns the chapter text, or null if the page has none.
+     */
+    static Element parseChapterBody(Document chapterPage) {
+        return chapterPage.selectFirst(".user-formatted-inner");
+    }
+
+    /**
+     * Reads title, author and the story's summary. The site shows no cover.
+     */
+    static NovelMetadata parseMetadata(Document storyPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = storyPage.selectFirst(".huge-font");
+        Element author = storyPage.selectFirst("a.no-wrap");
+        Element summary = storyPage.selectFirst("#story-summary-inline");
+
+        if (title != null) metadata.setTitle(title.text());
+        if (author != null) metadata.setAuthor(author.text());
+        if (summary != null) metadata.setDescription(summary.text());
+        return metadata;
+    }
 }

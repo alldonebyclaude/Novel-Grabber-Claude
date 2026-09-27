@@ -8,24 +8,33 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+/**
+ * Betwixted Translations, a WordPress/Elementor site. The novel page lists the chapters in tabs.
+ */
 public class betwixtedbutterfly_com implements Source {
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
+
     private final String name = "Betwixted Translations";
     private final String url = "https://betwixtedbutterfly.com/";
     private final boolean canHeadless = false;
     private Novel novel;
     private Document toc;
 
-    public betwixtedbutterfly_com() {
-    }
-
     public betwixtedbutterfly_com(Novel novel) {
         this.novel = novel;
+    }
+
+    public betwixtedbutterfly_com() {
     }
 
     public String getName() {
@@ -47,20 +56,15 @@ public class betwixtedbutterfly_com implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         try {
-            toc = Jsoup.connect(novel.novelLink)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            Elements chapterLinks = toc.select("div[id^=elementor-tab-content] a");
-            for (Element chapterLink : chapterLinks) {
-                chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
+            toc = fetch(novel.novelLink);
+            chapterList = parseChapterList(toc);
+            if (chapterList.isEmpty()) {
+                GrabberUtils.err(novel.window, "Could not find any chapters. Correct novel link?");
             }
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not connect to webpage!", e);
-        } catch (NullPointerException e) {
-            GrabberUtils.err(novel.window, "Could not find expected selectors. Correct novel link?", e);
         }
         return chapterList;
     }
@@ -68,11 +72,7 @@ public class betwixtedbutterfly_com implements Source {
     public Element getChapterContent(Chapter chapter) {
         Element chapterBody = null;
         try {
-            Document doc = Jsoup.connect(chapter.chapterURL)
-                    .cookies(novel.cookies)
-                    .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                    .get();
-            chapterBody = doc.selectFirst("div.entry-inner");
+            chapterBody = parseChapterBody(fetch(chapter.chapterURL));
         } catch (HttpStatusException httpEr) {
             GrabberUtils.err(novel.window, GrabberUtils.getHTMLErrMsg(httpEr));
         } catch (IOException e) {
@@ -82,25 +82,11 @@ public class betwixtedbutterfly_com implements Source {
     }
 
     public NovelMetadata getMetadata() {
-        NovelMetadata metadata = new NovelMetadata();
+        if (toc == null) return new NovelMetadata();
 
-        if (toc != null) {
-            Element title = toc.selectFirst("h2.elementor-heading-title");
-            Element desc = toc.selectFirst("div.elementor-text-editor:not(:contains(Author))");
-            Element cover = toc.selectFirst(".elementor-image > img:nth-child(1)");
-
-            metadata.setTitle(title != null ? title.text() : "");
-            metadata.setDescription(desc != null ? desc.text() : "");
-            metadata.setBufferedCover(cover != null ? cover.attr("abs:src") : "");
-
-            Elements tags = toc.select("div.elementor-button-wrapper a");
-            List<String> subjects = new ArrayList<>();
-            for (Element tag : tags) {
-                subjects.add(tag.text());
-            }
-            metadata.setSubjects(subjects);
-        }
-
+        NovelMetadata metadata = parseMetadata(toc);
+        String coverUrl = parseCoverUrl(toc);
+        if (coverUrl != null) metadata.setBufferedCover(coverUrl);
         return metadata;
     }
 
@@ -115,4 +101,50 @@ public class betwixtedbutterfly_com implements Source {
         return blacklistedTags;
     }
 
+    private Document fetch(String pageUrl) throws IOException {
+        Map<String, String> cookies = novel.cookies != null ? novel.cookies : Collections.emptyMap();
+        return Jsoup.connect(pageUrl).userAgent(USER_AGENT).cookies(cookies).get();
+    }
+
+    /**
+     * Reads the chapters from the tabs in page order. Some chapters are linked in two tabs; each is kept once.
+     */
+    static List<Chapter> parseChapterList(Document novelPage) {
+        List<Chapter> chapterList = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (Element link : novelPage.select("div[id^=elementor-tab-content] a[href]")) {
+            String chapterUrl = link.attr("abs:href");
+            if (chapterUrl.isEmpty() || !seen.add(chapterUrl)) continue;
+            chapterList.add(new Chapter(link.text(), chapterUrl));
+        }
+        return chapterList;
+    }
+
+    /**
+     * Returns the chapter text, or null if the page has none.
+     */
+    static Element parseChapterBody(Document chapterPage) {
+        return chapterPage.selectFirst("div.entry-inner");
+    }
+
+    /**
+     * Reads title, description and tags. The description is the first text block without the "Author" details.
+     * The cover is left to {@link #parseCoverUrl(Document)}, because setting it on {@link NovelMetadata} downloads
+     * the image.
+     */
+    static NovelMetadata parseMetadata(Document novelPage) {
+        NovelMetadata metadata = new NovelMetadata();
+        Element title = novelPage.selectFirst("h2.elementor-heading-title");
+        Element description = novelPage.selectFirst(".elementor-widget-text-editor:not(:contains(Author))");
+
+        if (title != null) metadata.setTitle(title.text());
+        if (description != null) metadata.setDescription(description.text());
+        metadata.setSubjects(novelPage.select("div.elementor-button-wrapper a").eachText());
+        return metadata;
+    }
+
+    static String parseCoverUrl(Document novelPage) {
+        Element cover = novelPage.selectFirst(".elementor-widget-image img");
+        return cover == null ? null : cover.absUrl("src");
+    }
 }
