@@ -45,7 +45,7 @@ public class truyenfull_vn implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
             String storyID = toc.selectFirst("#truyen-id").attr("value");
@@ -103,7 +103,7 @@ public class truyenfull_vn implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add(".ads-responsive");
         return blacklistedTags;
     }

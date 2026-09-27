@@ -46,7 +46,7 @@ public class veratales_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink).get();
             Elements chapterLinks = toc.select("#novel-chapters-list a.text-links");
@@ -91,7 +91,7 @@ public class veratales_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add("div.ad-wrapper");
         return blacklistedTags;
     }

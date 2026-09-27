@@ -45,7 +45,7 @@ public class chickengege_org implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
             Elements chapterLinks = toc.select("#novelList a");
@@ -91,7 +91,7 @@ public class chickengege_org implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add(".meta-comments");
         blacklistedTags.add(".m-a-box");
         blacklistedTags.add(".m-a-box");

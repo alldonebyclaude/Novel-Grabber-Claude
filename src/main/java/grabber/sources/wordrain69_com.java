@@ -47,7 +47,7 @@ public class wordrain69_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink).timeout(30 * 1000).get();
             Connection.Response res = Jsoup.connect("https://wordrain69.com/wp-admin/admin-ajax.php")
@@ -107,7 +107,7 @@ public class wordrain69_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add("center");
         blacklistedTags.add("meta");
         blacklistedTags.add("script");

@@ -46,7 +46,7 @@ public class wuxia_blog implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink)
                     .cookies(novel.cookies)
@@ -119,7 +119,7 @@ public class wuxia_blog implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add("p:contains(This chapter is updated by Wuxia.Blog)");
         blacklistedTags.add("span[itemprop=datePublished]");
         blacklistedTags.add("span.fa-calendar");

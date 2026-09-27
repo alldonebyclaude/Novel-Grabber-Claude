@@ -43,13 +43,13 @@ public class Bot {
     private TelegramBot bot;
     private Config config = Config.getInstance();
     private LocalDate yesterday = LocalDate.now(ZoneId.systemDefault());
-    private List<String> vipList = new ArrayList();
-    private List<String> blockList = new ArrayList();
-    private ConcurrentHashMap<Long, User> users = new ConcurrentHashMap();
+    private List<String> vipList = new ArrayList<>();
+    private List<String> blockList = new ArrayList<>();
+    private ConcurrentHashMap<Long, User> users = new ConcurrentHashMap<>();
     private static final String infoFile = "info.txt";
     private static final String vipFile = "vip.txt";
     private static final String telegramDir = "./telegram";
-    private static final String cliText = "Input needs to start with '-link'. All parameter are case sensitive.\n\n[-link] | {novel_URL} | URL to the novel's table of contents page. Every other parameter is optional.\n[-wait] | {miliseconds} | Time between each chapter grab.\n[-chapters] | {all}, {5 27}, {12 last} | Specify which chapters to download.\n[-noDesc] | Don't create a description page.\n[-getImages] | Grab images from chapter body as well.\n[-displayTitle] | Write the chapter title at the top of each chapter text.\n[-invertOrder] | Invert the chapter order.\n\nExample:\n -link http://novelhost.com/novel/ -chapters 5 10 -getImages";
+    private static final String cliText = "Input needs to start with '-link'. All parameter are case sensitive.\n\n[-link] | {novel_URL} | URL to the novel's table of contents page. Every other parameter is optional.\n[-wait] | {milliseconds} | Time between each chapter grab.\n[-chapters] | {all}, {5 27}, {12 last} | Specify which chapters to download.\n[-noDesc] | Don't create a description page.\n[-getImages] | Grab images from chapter body as well.\n[-displayTitle] | Write the chapter title at the top of each chapter text.\n[-invertOrder] | Invert the chapter order.\n\nExample:\n -link http://novelhost.com/novel/ -chapters 5 10 -getImages";
 
     public Bot() throws InterruptedException {
         String apiToken = this.config.getTelegramApiToken();
@@ -66,10 +66,10 @@ public class Bot {
     public void start() {
         GrabberUtils.info("[BOT]Running.");
         this.bot.setUpdatesListener((updates) -> {
-            Iterator var2 = updates.iterator();
+            Iterator<Update> var2 = updates.iterator();
 
             while(var2.hasNext()) {
-                Update update = (Update)var2.next();
+                Update update = var2.next();
                 if (this.isNewDay()) {
                     this.resetLimits();
                 }
@@ -87,9 +87,9 @@ public class Bot {
     }
 
     private void processCallback(CallbackQuery callbackQuery) {
-        long chatId = callbackQuery.message().chat().id();
-        int msgId = callbackQuery.message().messageId();
-        User user = (User)this.users.get(callbackQuery.from().id());
+        long chatId = callbackQuery.maybeInaccessibleMessage().chat().id();
+        int msgId = callbackQuery.maybeInaccessibleMessage().messageId();
+        User user = this.users.get(callbackQuery.from().id());
         UUID uuid = UUID.fromString(callbackQuery.data());
         DownloadTask downloadTask = user.getDownloadTask(uuid);
         if (downloadTask != null) {
@@ -116,13 +116,13 @@ public class Bot {
                 return;
             }
             this.users.putIfAbsent(userId, new User(message.from(), this.vipList.contains(String.valueOf(userId))));
-            User user = (User)this.users.get(userId);
+            User user = this.users.get(userId);
             GrabberUtils.info(messageTxt);
             if (!messageTxt.startsWith("/info") && !messageTxt.startsWith("/start")) {
                 if (messageTxt.startsWith("/sources")) {
                     this.bot.execute((new SendMessage(chatId, this.getSourcesString())).parseMode(ParseMode.Markdown).linkPreviewOptions(new LinkPreviewOptions().isDisabled(true)));
                 } else if (messageTxt.startsWith("/cli")) {
-                    this.bot.execute((new SendMessage(chatId, "Input needs to start with '-link'. All parameter are case sensitive.\n\n[-link] | {novel_URL} | URL to the novel's table of contents page. Every other parameter is optional.\n[-wait] | {miliseconds} | Time between each chapter grab.\n[-chapters] | {all}, {5 27}, {12 last} | Specify which chapters to download.\n[-noDesc] | Don't create a description page.\n[-getImages] | Grab images from chapter body as well.\n[-displayTitle] | Write the chapter title at the top of each chapter text.\n[-invertOrder] | Invert the chapter order.\n\nExample:\n -link http://novelhost.com/novel/ -chapters 5 10 -getImages")).linkPreviewOptions(new LinkPreviewOptions().isDisabled(true)));
+                    this.bot.execute((new SendMessage(chatId, cliText)).linkPreviewOptions(new LinkPreviewOptions().isDisabled(true)));
                 } else if (messageTxt.startsWith("/limits")) {
                     this.bot.execute((new SendMessage(chatId, user.getLimitString())).linkPreviewOptions(new LinkPreviewOptions().isDisabled(true)));
                 } else if (messageTxt.startsWith("/updateVips")) {
@@ -146,7 +146,7 @@ public class Bot {
                     });
                 }
             } else {
-                this.bot.execute((new SendMessage(chatId, BotUtils.getStringFromFile("./telegram/info.txt"))).parseMode(ParseMode.Markdown).linkPreviewOptions(new LinkPreviewOptions().isDisabled(true)));
+                this.bot.execute((new SendMessage(chatId, BotUtils.getStringFromFile(telegramDir + "/" + infoFile))).parseMode(ParseMode.Markdown).linkPreviewOptions(new LinkPreviewOptions().isDisabled(true)));
             }
 
         }
@@ -213,10 +213,10 @@ public class Bot {
 
     private String getSourcesString() {
         StringBuilder sources = new StringBuilder();
-        Iterator var2 = GrabberUtils.getSources().iterator();
+        Iterator<Source> var2 = GrabberUtils.getSources().iterator();
 
         while(var2.hasNext()) {
-            Source source = (Source)var2.next();
+            Source source = var2.next();
             sources.append("[" + source.getName() + "](" + source.getUrl() + ")\n");
         }
 
@@ -224,7 +224,7 @@ public class Bot {
     }
 
     private void readVipFile() {
-        try (Stream<String> lines = Files.lines(Paths.get("./telegram/vip.txt"))) {
+        try (Stream<String> lines = Files.lines(Paths.get(telegramDir + "/" + vipFile))) {
             this.vipList = lines.collect(Collectors.toList());
         } catch (IOException e) {
             GrabberUtils.err("VIP file not found!");
@@ -246,7 +246,7 @@ public class Bot {
         String time = ZonedDateTime.now().truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         try {
-            Files.createDirectories(Paths.get("./telegram"));
+            Files.createDirectories(Paths.get(telegramDir));
             BufferedWriter writer = new BufferedWriter(new FileWriter("./telegram/log.txt", true));
             Throwable var3 = null;
 

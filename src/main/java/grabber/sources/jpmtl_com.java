@@ -50,7 +50,7 @@ public class jpmtl_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
 
@@ -129,7 +129,7 @@ public class jpmtl_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add(".adswrapper");
         blacklistedTags.add(".cp-content:contains(This novel has been translated by JPMTL.com and if you are reading this somewhere, they have stolen our translation.)");
         return blacklistedTags;

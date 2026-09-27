@@ -5,7 +5,6 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.request.EditMessageText;
 import com.pengrad.telegrambot.request.SendDocument;
 import com.pengrad.telegrambot.request.SendMessage;
-import com.pengrad.telegrambot.response.SendResponse;
 import grabber.CLI;
 import grabber.GrabberUtils;
 import grabber.Novel;
@@ -59,11 +58,11 @@ public class DownloadTask {
 
     private void createCLI() throws IOException, ClassNotFoundException, IllegalStateException {
         String[] args = CLI.createArgsFromString(this.messageTxt);
-        Map params = CLI.createParamsFromArgs(args);
+        Map<String, List<String>> params = CLI.createParamsFromArgs(args);
 
         int waitTime;
         try {
-            waitTime = Integer.parseInt((String)((List)params.get("wait")).get(0));
+            waitTime = Integer.parseInt(params.get("wait").get(0));
             if (waitTime < this.config.getTelegramWait() && !this.user.isVip()) {
                 waitTime = this.config.getTelegramWait();
             }
@@ -81,15 +80,16 @@ public class DownloadTask {
             throw new IllegalStateException("Chapter list empty.");
         } else {
             if (params.containsKey("chapters")) {
-                if (((String)((List)params.get("chapters")).get(0)).equals("all")) {
+                List<String> chapters = params.get("chapters");
+                if (chapters.get(0).equals("all")) {
                     this.novel.firstChapter = 1;
                     this.novel.lastChapter = this.novel.chapterList.size();
                 } else {
-                    this.novel.firstChapter = Integer.parseInt((String)((List)params.get("chapters")).get(0));
-                    if (((String)((List)params.get("chapters")).get(1)).equals("last")) {
+                    this.novel.firstChapter = Integer.parseInt(chapters.get(0));
+                    if (chapters.get(1).equals("last")) {
                         this.novel.lastChapter = this.novel.chapterList.size();
                     } else {
-                        this.novel.lastChapter = Integer.parseInt((String)((List)params.get("chapters")).get(1));
+                        this.novel.lastChapter = Integer.parseInt(chapters.get(1));
                     }
                 }
             } else {
@@ -114,7 +114,7 @@ public class DownloadTask {
     }
 
     public void downloadNovel() throws IllegalStateException, InterruptedException {
-        this.progressMsgId = ((SendResponse)this.bot.execute(new SendMessage(this.chatId, "Downloading: " + this.novel.metadata.getTitle()))).message().messageId();
+        this.progressMsgId = this.bot.execute(new SendMessage(this.chatId, "Downloading: " + this.novel.metadata.getTitle())).message().messageId();
         this.novel.downloadChapters();
         this.novel.output();
         if (!this.novel.failedChapters.isEmpty()) {

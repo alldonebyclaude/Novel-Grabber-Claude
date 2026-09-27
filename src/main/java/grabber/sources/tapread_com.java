@@ -52,7 +52,7 @@ public class tapread_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
             String bookID = novel.novelLink.substring(novel.novelLink.lastIndexOf("/") + 1);
@@ -138,7 +138,7 @@ public class tapread_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         return blacklistedTags;
     }
 

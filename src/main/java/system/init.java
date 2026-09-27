@@ -122,7 +122,7 @@ public class init {
                 "[] = optional paramaters {} = arguments for paramater\n" +
                 "  -gui\t\t\t\t\t\tStarts the Graphical User Interface.\n" +
                 "  -link {novel URL}\t\t\t\tURL to the novel's table of contents page.\n" +
-                "  [-wait] {miliseconds}\t\t\t\tTime between each chapter grab.\n" +
+                "  [-wait] {milliseconds}\t\t\t\tTime between each chapter grab.\n" +
                 "  [-headless] {chrome/firefox/opera/edge/IE}\tVisit the website in your browser. Executes javascript etc.\n" +
                 "  [-chapters] {all}, {5 27}, {12 last}\t\tSpecify which chapters to download.\n" +
                 "  [-path] {directory path}\t\t\tOutput directory for the EPUB.\n" +
@@ -140,7 +140,7 @@ public class init {
 
     // Set font for each swing element
     public static void setUIFont(javax.swing.plaf.FontUIResource f){
-        java.util.Enumeration keys = UIManager.getDefaults().keys();
+        java.util.Enumeration<Object> keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
             Object key = keys.nextElement();
             Object value = UIManager.get (key);

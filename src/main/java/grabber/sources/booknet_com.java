@@ -49,7 +49,7 @@ public class booknet_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink)
                     .cookies(novel.cookies)
@@ -144,7 +144,7 @@ public class booknet_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add(".reader-pagination");
         blacklistedTags.add(".clearfix");
         return blacklistedTags;

@@ -164,7 +164,7 @@ public class manualSource implements Source {
 
     // Dummy
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         return blacklistedTags;
     }
 

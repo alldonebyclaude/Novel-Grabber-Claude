@@ -30,7 +30,8 @@ public class Accounts {
             for (Object loadedAccount: accounts) {
                 JSONObject accountObj = (JSONObject) loadedAccount;
                 String domain = (String) accountObj.get("domain");
-                HashMap cookies = (HashMap<String, String>) accountObj.get("cookies");
+                @SuppressWarnings("unchecked") // json-simple stores the cookies as a raw JSONObject
+                HashMap<String, String> cookies = (HashMap<String, String>) accountObj.get("cookies");
                 domainCookies.put(domain, cookies);
             }
         } catch (IOException e) {
@@ -40,6 +41,7 @@ public class Accounts {
         }
     }
 
+    @SuppressWarnings("unchecked") // json-simple's JSONObject/JSONArray are raw collections
     public void writeAccountsFile() {
         try(BufferedWriter writer = new BufferedWriter(new FileWriter(accountsFile))) {
             JSONArray accountArray = new JSONArray();

@@ -14,8 +14,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,14 +48,8 @@ public class ptwxz_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
-
-            //get input stream from the URL
-            InputStream inStream = new URL(novel.novelLink).openStream();
-
-            //parse document using input stream and specify the charset
-            Document doc = Jsoup.parse(inStream, "UTF-8", novel.novelLink);
             toc = Jsoup.connect(novel.novelLink)
                     .cookies(novel.cookies)
                     .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
@@ -123,7 +115,7 @@ public class ptwxz_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add(".toplink");
         blacklistedTags.add("h1 a");
         blacklistedTags.add("div[align=center]");

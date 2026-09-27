@@ -49,7 +49,7 @@ public class fujossy_jp implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             String storyID = novel.novelLink.substring(GrabberUtils.ordinalIndexOf(novel.novelLink, "/", 4) + 1);
             String json = Jsoup.connect("https://fujossy.jp/api/books/" + storyID + ".json")
@@ -119,7 +119,7 @@ public class fujossy_jp implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         return blacklistedTags;
     }
 

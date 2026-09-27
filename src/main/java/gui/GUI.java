@@ -113,7 +113,7 @@ public class GUI extends JFrame {
     private JButton checkRemoveEntry;
     private JButton checkAddNewEntryBtn;
     private JTextArea checkerLogArea;
-    private JList checkerList;
+    private JList<String> checkerList;
     private JScrollPane checkerListScrollPane;
     private JScrollPane checkerLogScrollPane;
     private JLabel checkBusyIcon;
@@ -135,24 +135,24 @@ public class GUI extends JFrame {
     public JLabel pagesCountLbl;
     public JLabel pagesLbl;
     public JCheckBox useHeaderlessBrowserCheckBox;
-    public JComboBox settingsBrowserComboBox;
+    public JComboBox<String> settingsBrowserComboBox;
     public JCheckBox displayChapterTitleCheckBox;
     public JCheckBox manDispalyChapterTitleCheckbox;
     public JTextField autoChapterToChapterNumberField;
     public JCheckBox manUseHeaderlessBrowser;
-    public JComboBox manBrowserCombobox;
+    public JComboBox<String> manBrowserCombobox;
     private JButton manAddChapterButton;
-    private JList accountWebsiteList;
+    private JList<String> accountWebsiteList;
     private JTextField accountUsernameField;
     private JTextField accountPasswordField;
     private JButton accountAddBtn;
     private JScrollPane accountWebsiteScrollPane;
     public JCheckBox useAccountCheckBox;
-    private JList settingsMenuList;
+    private JList<String> settingsMenuList;
     private JScrollPane settingsMenuScrollPane;
     private JPanel settingsHeadlessPanel;
     private JButton emailSaveBtn;
-    private JComboBox settingsNameOutputFormatComboBox;
+    private JComboBox<String> settingsNameOutputFormatComboBox;
     private JPanel settingsGeneralPanel;
     private JCheckBox settingsAlwaysGetImagesCheckBox;
     private JTextField settingsSavelocationField;
@@ -168,7 +168,7 @@ public class GUI extends JFrame {
     private JTextField emailPortField;
     private JTextField emailUserField;
     private JTextField emailPasswordField;
-    private JComboBox emailSLLComboBox;
+    private JComboBox<String> emailSLLComboBox;
     private JCheckBox sendNewChapterNotificationsCheckBox;
     private JTextField emailReceiver;
     private JCheckBox sendEPUBAsAttachmentCheckBox;
@@ -202,8 +202,8 @@ public class GUI extends JFrame {
     private JButton settingsSourcesBtn;
     private JPanel settingsSourcesPanel;
     private JScrollPane sourcesScrollPane;
-    private JList sourcesJList;
-    private JComboBox settingsOutputFormatComboBox;
+    private JList<Source> sourcesJList;
+    private JComboBox<String> settingsOutputFormatComboBox;
     private JButton openBrowserButton;
     private JButton editCookiesButton;
     private JPanel sourcesLoginPanel;
@@ -229,15 +229,15 @@ public class GUI extends JFrame {
     private JButton searchButton;
     private JCheckBox libraryDoNotDisplayCoversCheckBox;
     private JPanel libraryNovelPanel;
-    private JComboBox libraryHostListComboBox;
+    private JComboBox<String> libraryHostListComboBox;
     private JCheckBox settingsNotificationWhenFinishedCheckBox;
     private JSpinner settingsTeleDownloadLimitSpinner;
-    private JComboBox settingsGuiThemeComboBox;
+    private JComboBox<String> settingsGuiThemeComboBox;
     private JCheckBox settingsTeleImagesAllowedCheckBox;
-    private JComboBox settingsGuiFontComboBox;
+    private JComboBox<String> settingsGuiFontComboBox;
     private JPanel settingsNovelPanel;
     private JButton settingsNovelBtn;
-    private JComboBox settingsChapterTitleComboBox;
+    private JComboBox<String> settingsChapterTitleComboBox;
     private JButton settingsNovelSaveBtn;
     private JTextField settingsNovelCustomChapterTitleField;
     private JTextField settingsNovelCustomFileNameField;
@@ -879,7 +879,7 @@ public class GUI extends JFrame {
                 if (guiDriver != null) {
                     String sourceName = sourcesListModel.get(selected).getName();
                     Set<Cookie> cookies = guiDriver.driver.manage().getCookies();
-                    Map<String, String> loginCookies = new HashMap();
+                    Map<String, String> loginCookies = new HashMap<>();
                     for (Cookie cookie : cookies) {
                         loginCookies.put(cookie.getName(), cookie.getValue());
                     }
@@ -1280,7 +1280,7 @@ public class GUI extends JFrame {
                 if (source != null) {
                     // Check hostname is already in combobox
                     String hostname = source.getName();
-                    if(((DefaultComboBoxModel)libraryHostListComboBox.getModel()).getIndexOf(hostname) == -1) {
+                    if(((DefaultComboBoxModel<String>)libraryHostListComboBox.getModel()).getIndexOf(hostname) == -1) {
                         libraryHostListComboBox.addItem(hostname);
                     }
                 }
@@ -1770,7 +1770,7 @@ public class GUI extends JFrame {
         settingsContributeBtn.setToolTipText("Buy the dev a coffee");
         settingsContributeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        settingsBrowserComboBox = new JComboBox(Driver.browserList);
+        settingsBrowserComboBox = new JComboBox<>(Driver.browserList);
         if(settings.getBrowser().isEmpty()) {
             String browserSelection = (String)JOptionPane.showInputDialog(this,
                     "A browser is required for logins and browser based grabbing in some cases. \n\n" +
@@ -1789,11 +1789,11 @@ public class GUI extends JFrame {
         settingsNotificationWhenFinishedCheckBox = new JCheckBox();
         settingsNotificationWhenFinishedCheckBox.setSelected(settings.isShowNovelFinishedNotification());
 
-        settingsGuiThemeComboBox = new JComboBox(guiThemes);
+        settingsGuiThemeComboBox = new JComboBox<>(guiThemes);
         settingsGuiThemeComboBox.setSelectedIndex(settings.getGuiTheme());
 
         String[] installedFontFamilies = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-        settingsGuiFontComboBox = new JComboBox(installedFontFamilies);
+        settingsGuiFontComboBox = new JComboBox<>(installedFontFamilies);
         int selectedFontIndex = Arrays.asList(installedFontFamilies).indexOf(settings.getFontName());
         settingsGuiFontComboBox.setSelectedIndex(selectedFontIndex);
 
@@ -1821,14 +1821,14 @@ public class GUI extends JFrame {
             manSaveLocation.setText(settings.getSaveLocation());
         }
 
-        settingsNameOutputFormatComboBox = new JComboBox(epubFilenameFormats);
+        settingsNameOutputFormatComboBox = new JComboBox<>(epubFilenameFormats);
         settingsNameOutputFormatComboBox.setSelectedIndex(settings.getFilenameFormat());
 
         settingsNovelCustomFileNameField = new JTextField(settings.getNovelFileNameTemplate());
         boolean isCustomNovelFile = settings.getFilenameFormat() == epubFilenameFormats.length-1;
         settingsNovelCustomFileNameField.setVisible(isCustomNovelFile);
 
-        settingsOutputFormatComboBox = new JComboBox(epubFormats);
+        settingsOutputFormatComboBox = new JComboBox<>(epubFormats);
         settingsOutputFormatComboBox.setSelectedIndex(settings.getOutputFormat());
 
         settingsSeperateChaptersCheckBox = new JCheckBox();
@@ -1838,7 +1838,7 @@ public class GUI extends JFrame {
             settingsSeperateChaptersCheckBox.setSelected(settings.isSeparateChapters());
         }
 
-        settingsChapterTitleComboBox = new JComboBox(chapterTitleFormatOptions);
+        settingsChapterTitleComboBox = new JComboBox<>(chapterTitleFormatOptions);
         if (settings.getChapterTitleFormat() > chapterTitleFormatOptions.length) {
             GrabberUtils.err("[CONFIG]chapterTitleFormat is outside available range.");
             settings.setChapterTitleFormat(0);
@@ -1880,7 +1880,7 @@ public class GUI extends JFrame {
         emailPasswordField = new JPasswordField(settings.getPassword());
         emailPortField = new JTextField(String.valueOf(settings.getPort()));
 
-        emailSLLComboBox = new JComboBox(sslList);
+        emailSLLComboBox = new JComboBox<>(sslList);
         int emailSslIndex = 0;
         switch(settings.getSsl()) {
             case "SMTP":
@@ -1923,7 +1923,7 @@ public class GUI extends JFrame {
         libraryDoNotDisplayCoversCheckBox = new JCheckBox();
         libraryDoNotDisplayCoversCheckBox.setSelected(settings.isLibraryNoCovers());
 
-        libraryHostListComboBox =  new JComboBox();
+        libraryHostListComboBox =  new JComboBox<>();
         buildLibHostComboBox();
 
         //Sources
@@ -2009,7 +2009,7 @@ public class GUI extends JFrame {
         final Spacer spacer4 = new Spacer();
         panel3.add(spacer4, new GridConstraints(0, 3, 2, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final JLabel label3 = new JLabel();
-        label3.setText("Wait time:");
+        label3.setText("Wait time (ms):");
         panel3.add(label3, new GridConstraints(1, 4, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         waitTime.setText("0");
         waitTime.setToolTipText("Wait time between each chapter call in milliseconds. Please use appropriate wait times to not flood the host server.");
@@ -2235,7 +2235,7 @@ public class GUI extends JFrame {
         panel16.add(panel17, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         panel17.setBorder(BorderFactory.createTitledBorder(null, "Options", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         final JLabel label12 = new JLabel();
-        label12.setText("Wait time:");
+        label12.setText("Wait time (ms):");
         panel17.add(label12, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         panel17.add(manWaitTime, new GridConstraints(1, 3, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1), null, 0, false));
         manUseAccountCheckBox = new JCheckBox();
@@ -2595,8 +2595,8 @@ public class GUI extends JFrame {
         label27.setToolTipText("Limit downloades to novels of a certain chapter length. (-1 for unlimited)");
         settingsTelegramPanel.add(label27, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label28 = new JLabel();
-        label28.setText("Wait time");
-        label28.setToolTipText("Set a static wait time between each chapter in miliseconds (0 for no wait time)");
+        label28.setText("Wait time (ms)");
+        label28.setToolTipText("Set a static wait time between each chapter in milliseconds (0 for no wait time)");
         settingsTelegramPanel.add(label28, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         settingsTelegramPanel.add(settingsTeleMaxChapterPerDayField, new GridConstraints(1, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(100, -1), null, 0, false));
         final JLabel label29 = new JLabel();

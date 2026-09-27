@@ -105,7 +105,7 @@ public class dreame_com implements Source {
      * Initialize blacklisted tags.
      */
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         return blacklistedTags;
     }
 

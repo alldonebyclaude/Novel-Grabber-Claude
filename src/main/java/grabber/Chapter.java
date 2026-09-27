@@ -73,6 +73,8 @@ public class Chapter implements Serializable {
     private void removeUnwantedTags(List<String> blacklistedTags) {
         // Remove user set blacklisted tags
         for (String tag : blacklistedTags) {
+            // A blank selector (e.g. added empty in the blacklist dialog) would make jsoup throw
+            if (tag == null || tag.isBlank()) continue;
             chapterContainer.select(tag).remove();
         }
         // Remove empty block elements

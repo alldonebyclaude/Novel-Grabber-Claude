@@ -59,8 +59,8 @@ public class EmailNotification {
             links.append("<a href=\""+novel.chapterList.get(i).chapterURL+"\">"+novel.chapterList.get(i).name+"</a><br>");
         }
         Email email = EmailBuilder.startingBlank()
-                .withRecipients(new Recipient(null, config.getInstance().getReceiverEmail(), Message.RecipientType.TO, null))
-                .from(config.getInstance().getReceiverEmail())
+                .withRecipients(new Recipient(null, config.getReceiverEmail(), Message.RecipientType.TO, null))
+                .from(config.getReceiverEmail())
                 .withSubject("[Novel-Grabber]"+novel.metadata.getTitle() + " - Update")
                 .withHTMLText(links.toString())
                 .buildEmail();
@@ -80,8 +80,8 @@ public class EmailNotification {
         File epub = new File(novel.saveLocation+"/"+novel.filename);
         DataSource epub_source = new FileDataSource(epub);
         Email email = EmailBuilder.startingBlank()
-                .withRecipients(new Recipient(null, config.getInstance().getReceiverEmail(), Message.RecipientType.TO, null))
-                .from(config.getInstance().getReceiverEmail())
+                .withRecipients(new Recipient(null, config.getReceiverEmail(), Message.RecipientType.TO, null))
+                .from(config.getReceiverEmail())
                 .withSubject("[Novel-Grabber]"+novel.metadata.getTitle() +" - Update")
                 .withHTMLText(links.toString())
                 .withAttachment(epub.getName(), epub_source)

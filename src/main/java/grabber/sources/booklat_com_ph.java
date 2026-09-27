@@ -45,7 +45,7 @@ public class booklat_com_ph implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             Document tempPage = Jsoup.connect(novel.novelLink + "/chapters").cookies(novel.cookies).get();
             toc = Jsoup.connect(tempPage.select("#lnkRead").attr("abs:href")).cookies(novel.cookies).get();
@@ -103,7 +103,7 @@ public class booklat_com_ph implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         return blacklistedTags;
     }
 

@@ -48,7 +48,7 @@ public class tapas_io implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).timeout(30 * 1000).get();
             String seriesId = toc.select("meta[property=al:android:url]").attr("content");
@@ -115,7 +115,7 @@ public class tapas_io implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         return blacklistedTags;
     }
 

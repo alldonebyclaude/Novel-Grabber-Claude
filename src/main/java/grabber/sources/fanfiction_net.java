@@ -43,7 +43,7 @@ public class fanfiction_net implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         toc = getTocHeadless();
         System.out.println(toc);
         Elements chapterLinks = toc.select("#chap_select option");
@@ -57,13 +57,6 @@ public class fanfiction_net implements Source {
         return chapterList;
     }
 
-
-    private Document getPageStatic() throws IOException {
-        return Jsoup.connect(novel.novelLink)
-                .cookies(novel.cookies)
-                .userAgent("Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0")
-                .get();
-    }
 
     private Document getTocHeadless() {
         if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window);
@@ -106,7 +99,7 @@ public class fanfiction_net implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         return blacklistedTags;
     }
 

@@ -46,7 +46,7 @@ public class wuxiaworld_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             if (Config.getInstance().getHeadlessList().contains(name)) {
                 toc = getTocHeadless();

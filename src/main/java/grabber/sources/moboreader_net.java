@@ -45,7 +45,7 @@ public class moboreader_net implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink)
                     .cookies(novel.cookies)
@@ -110,7 +110,7 @@ public class moboreader_net implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add(".vip_box");
         blacklistedTags.add("#pagnation");
         blacklistedTags.add(".no_border");

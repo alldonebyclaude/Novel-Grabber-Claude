@@ -77,6 +77,7 @@ public class Library {
     /**
      * Saves library as JSON file.
      */
+    @SuppressWarnings("unchecked") // json-simple's JSONObject/JSONArray are raw collections
     public void writeLibraryFile() {
         try(BufferedWriter writer = new BufferedWriter(new FileWriter(libraryFile))) {
             JSONObject libraryObj = new JSONObject();

@@ -45,7 +45,7 @@ public class webnovel_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             // Fetch novel page for metadata
             toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
@@ -105,7 +105,7 @@ public class webnovel_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add("pirate");
         blacklistedTags.add(".cha-hr");
         blacklistedTags.add(".cha-info");

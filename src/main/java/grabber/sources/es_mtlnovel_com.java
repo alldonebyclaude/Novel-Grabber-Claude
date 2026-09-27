@@ -46,7 +46,7 @@ public class es_mtlnovel_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
             Document temp = Jsoup.connect(novel.novelLink + "/chapter-list/").cookies(novel.cookies).get();
@@ -103,7 +103,7 @@ public class es_mtlnovel_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add("amp-iframe");
         blacklistedTags.add(".ads");
         return blacklistedTags;

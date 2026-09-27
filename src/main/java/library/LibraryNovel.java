@@ -29,6 +29,7 @@ public class LibraryNovel extends Novel {
      * Doesn't write cover to file.
      * This method is called for already existing novels.
      */
+    @SuppressWarnings("unchecked") // json-simple's JSONObject is a raw HashMap
     public LibraryNovel(JSONObject libNovel) {
         novelLink = (String) libNovel.get("novelUrl");
         saveLocation = (String) libNovel.get("saveLocation");
@@ -43,7 +44,7 @@ public class LibraryNovel extends Novel {
         getImages = (boolean) libNovel.getOrDefault("getImages", isGetImages());
         displayChapterTitle = (boolean) libNovel.getOrDefault("displayChapterTitle", isDisplayChapterTitle());
         checkingActive = (boolean) libNovel.getOrDefault("checkingActive", isCheckingActive());
-        waitTime = (((Long) libNovel.getOrDefault("threshold", 0)).intValue());
+        waitTime = (((Long) libNovel.getOrDefault("waitTime", 0L)).intValue());
         lastChapterNumber = (((Long) libNovel.get("lastChapter")).intValue());
         newestChapterNumber = (((Long) libNovel.get("newestChapter")).intValue());
         threshold = (((Long) libNovel.get("threshold")).intValue());
@@ -56,6 +57,7 @@ public class LibraryNovel extends Novel {
     /**
      * Returns this library novel as a JSON Object.
      */
+    @SuppressWarnings("unchecked") // json-simple's JSONObject is a raw HashMap
     public JSONObject getAsJSONObject() {
         JSONObject libraryNovel = new JSONObject();
         libraryNovel.put("novelUrl", getNovelUrl());

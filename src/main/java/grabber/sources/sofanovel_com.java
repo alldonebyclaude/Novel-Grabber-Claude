@@ -17,7 +17,7 @@ import org.jsoup.parser.Parser;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +52,7 @@ public class sofanovel_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         String title = novel.novelLink.substring(novel.novelLink.indexOf("/book/") + 6);
         try {
             // Book details
@@ -70,7 +70,6 @@ public class sofanovel_com implements Source {
                 node = (JSONObject) o;
             }
             String bookId = String.valueOf(node.get("szBookId"));
-            String trdBookId = (String) ((JSONObject) node.get("objExtend")).get("szTrdBookId");
             // Chapters
             response = Jsoup.connect("https://srv.sofanovel.com/bookinfo/chapter?nType=2&szBookID=" + bookId + "&nOffset=0&nLimit=9999&nSort=1&nIsSubscribe=1")
                     .ignoreContentType(true)
@@ -123,14 +122,14 @@ public class sofanovel_com implements Source {
             JSONObject report = (JSONObject) chapterArr.get(0);
             String txtLink = String.valueOf(report.get("szContentURL"));
             StringBuilder chapterContent = new StringBuilder();
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL(txtLink).openStream()))) {
+            try (BufferedReader in = new BufferedReader(new InputStreamReader(URI.create(txtLink).toURL().openStream()))) {
                 chapterContent.append("<div>");
                 String line = null;
                 while ((line = in.readLine()) != null) {
                     if (!line.trim().isEmpty()) chapterContent.append("<p>" + line + "</p>");
                 }
                 chapterContent.append("</div>");
-            } catch (IOException e) {
+            } catch (IOException | IllegalArgumentException e) {
                 e.printStackTrace();
             }
             chapterBody = Jsoup.parse(chapterContent.toString(), "", Parser.xmlParser());
@@ -165,7 +164,7 @@ public class sofanovel_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         return blacklistedTags;
     }
 

@@ -9,13 +9,13 @@ import java.awt.*;
 import java.util.List;
 
 public class editBlacklistedTags extends JDialog {
-    DefaultListModel blacklistedTagsListModel;
+    DefaultListModel<String> blacklistedTagsListModel;
     private JPanel contentPane;
     private JButton buttonOK;
     private JTextField blacklistedTagField;
     private JButton addButton;
     private JButton setBlacklistRemoveButton;
-    private JList list1;
+    private JList<String> list1;
     private JScrollPane scrollPane1;
     private List<String> blacklistedTags;
 
@@ -66,11 +66,11 @@ public class editBlacklistedTags extends JDialog {
     }
 
     private void createUIComponents() {
-        blacklistedTagsListModel = new DefaultListModel();
+        blacklistedTagsListModel = new DefaultListModel<>();
         for (String tag : blacklistedTags) {
             blacklistedTagsListModel.addElement(tag);
         }
-        list1 = new JList(blacklistedTagsListModel);
+        list1 = new JList<>(blacklistedTagsListModel);
         scrollPane1 = new JScrollPane(list1, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
         setBlacklistRemoveButton = new JButton(new ImageIcon(getClass().getResource("/images/remove_icon.png")));

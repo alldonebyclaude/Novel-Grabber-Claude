@@ -46,7 +46,7 @@ public class ranobes_net implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink)
                     .cookies(novel.cookies)
@@ -120,7 +120,7 @@ public class ranobes_net implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add("div[align=center]");
         return blacklistedTags;
     }

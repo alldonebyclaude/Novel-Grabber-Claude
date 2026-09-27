@@ -4,7 +4,6 @@ import grabber.Chapter;
 import grabber.GrabberUtils;
 import grabber.Novel;
 import grabber.NovelMetadata;
-import org.apache.commons.lang3.ObjectUtils;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

@@ -22,7 +22,7 @@ public class failedChaptersWindow extends JDialog {
     private JButton buttonRetry;
     static DefaultListModel<Chapter> chapterListModel;
     private JScrollPane chapterListScrollPane;
-    private JList GUIChapterList;
+    private JList<Chapter> GUIChapterList;
     private JButton buttonClose;
     private Novel novel;
 
@@ -93,7 +93,7 @@ public class failedChaptersWindow extends JDialog {
         MouseListener mouseListener = new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    Chapter selectedChapter = (Chapter) GUIChapterList.getSelectedValue();
+                    Chapter selectedChapter = GUIChapterList.getSelectedValue();
                     chapterListScrollPane.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                     selectedChapter.saveChapter(novel);
                     chapterListScrollPane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));

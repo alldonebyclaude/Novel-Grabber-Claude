@@ -45,7 +45,7 @@ public class readnovelfull_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink).get();
             String novelId = toc.select("#rating").attr("data-novel-id");
@@ -98,7 +98,7 @@ public class readnovelfull_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add("ads");
         blacklistedTags.add("div[align=left]");
         blacklistedTags.add(".adsbygoogle");

@@ -45,7 +45,7 @@ public class volarenovels_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink).cookies(novel.cookies).get();
             Elements chapterLinks = toc.select("#accordion .chapter-item a");
@@ -96,7 +96,7 @@ public class volarenovels_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add("a.chapter-nav");
         blacklistedTags.add("div[id^=div-gpt-ad]");
         blacklistedTags.add("span[style=font-size: 0]");

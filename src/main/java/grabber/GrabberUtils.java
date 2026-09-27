@@ -27,10 +27,10 @@ public class GrabberUtils {
 
     public static String getFilenameFromUrl(String urlString) {
         try {
-            URL url = new URL(urlString);
+            URL url = URI.create(urlString).toURL();
             String urlPath = url.getPath();
             return urlPath.substring(urlPath.lastIndexOf('/') + 1);
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException | IllegalArgumentException e) {
            err(e.getMessage(), e);
         }
         return null;
@@ -39,14 +39,14 @@ public class GrabberUtils {
     public static BufferedImage getImage(String urlStr) {
         BufferedImage image = null;
         try {
-            URL url = new URL(urlStr);
+            URL url = URI.create(urlStr).toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty(
                     "User-Agent",
                     "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0");
             connection.setRequestProperty("Accept", "image/*");
             image = ImageIO.read(connection.getInputStream());
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException | IllegalArgumentException e) {
             err("Image URL malformed: " + e.getMessage(), e);
         } catch (IOException e) {
             err("Could not read image: " + e.getMessage(), e);
@@ -68,7 +68,7 @@ public class GrabberUtils {
                 if(!el.select("a").isEmpty()) mostLikely = el;
             }
         }
-        List chapterList = new ArrayList<>();
+        List<Chapter> chapterList = new ArrayList<>();
         // Add links as chapters from most likely container
         for (Element chapterLink : mostLikely.select("a[href]")) {
             if (chapterLink.attr("abs:href").startsWith("http") && !chapterLink.text().isEmpty()) {
@@ -211,15 +211,25 @@ public class GrabberUtils {
      * Returns found sources.
      * @return {@code ArrayList<Source>} or empty list
      */
+    private static URLClassLoader sourceClassLoader;
+
+    /**
+     * The class loader for the source classes in "sources/" next to the jar. Created once and shared by all source
+     * lookups. It is never closed on purpose: a loaded source may still need it to load more of its classes.
+     */
+    static synchronized ClassLoader sourceClassLoader() throws MalformedURLException {
+        if (sourceClassLoader == null) {
+            URL sourcesFolder = new File(getCurrentPath() + "/sources").toURI().toURL();
+            sourceClassLoader = new URLClassLoader(new URL[]{sourcesFolder});
+        }
+        return sourceClassLoader;
+    }
+
     public static List<Source> getSources() {
         List<Source> sources = new ArrayList<>();
         try {
             String curPath = getCurrentPath();
-            // Create ClassLoader
-            File dir = new File(curPath + "/sources");
-            URL loadPath = dir.toURI().toURL();
-            URL[] urls = new URL[]{loadPath};
-            URLClassLoader classLoader = new URLClassLoader(urls);
+            ClassLoader classLoader = sourceClassLoader();
             // Loop through class files in source folder and load them via ClassLoader
             File[] sourceFiles = getSourceFiles(curPath + "/sources/grabber/sources");
             if (sourceFiles == null) {
@@ -248,11 +258,7 @@ public class GrabberUtils {
     public static Source getSource(String domain) throws ClassNotFoundException, IOException, NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException {
         String curPath = getCurrentPath();
-        // Create ClassLoader
-        File dir = new File(curPath + "/sources");
-        URL loadPath = dir.toURI().toURL();
-        URL[] urls = new URL[]{loadPath};
-        URLClassLoader classLoader = new URLClassLoader(urls);
+        ClassLoader classLoader = sourceClassLoader();
 
         // Convert url to filename format
         domain = domain.replaceAll("[^A-Za-z0-9]", "_");

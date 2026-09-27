@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import system.Config;
 
 public class User {
-    private ConcurrentHashMap<UUID, DownloadTask> downloadTasks = new ConcurrentHashMap();
+    private ConcurrentHashMap<UUID, DownloadTask> downloadTasks = new ConcurrentHashMap<>();
     private Config config = Config.getInstance();
     private int totalChaptersDownloadedTd = 0;
     private com.pengrad.telegrambot.model.User telegramUser;
@@ -51,7 +51,7 @@ public class User {
     }
 
     public DownloadTask getDownloadTask(UUID uuid) {
-        return (DownloadTask)this.downloadTasks.get(uuid);
+        return this.downloadTasks.get(uuid);
     }
 
     public void reset() {

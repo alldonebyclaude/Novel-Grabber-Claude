@@ -45,7 +45,7 @@ public class lightnovelworld_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             toc = Jsoup.connect(novel.novelLink)
                     .cookies(novel.cookies)
@@ -118,7 +118,7 @@ public class lightnovelworld_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         blacklistedTags.add(".trinity-player-iframe-wrapper");
         blacklistedTags.add("p[class]");
         blacklistedTags.add(".adsbox");

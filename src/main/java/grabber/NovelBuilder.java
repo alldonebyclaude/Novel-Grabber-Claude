@@ -3,12 +3,9 @@ package grabber;
 import bots.telegram.DownloadTask;
 import grabber.sources.Source;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -154,11 +151,7 @@ public class NovelBuilder {
     public NovelBuilder setSource() throws ClassNotFoundException, IOException {
         Source source;
         try {
-            String sourcesFolder = GrabberUtils.getCurrentPath() + "/sources";
-            File dir = new File(sourcesFolder);
-            URL loadPath = dir.toURI().toURL();
-            URL[] urls = new URL[]{loadPath};
-            URLClassLoader classLoader = new URLClassLoader(urls);
+            ClassLoader classLoader = GrabberUtils.sourceClassLoader();
 
             source = (Source) classLoader.loadClass("grabber.sources.manualSource")
                     .getConstructor(Novel.class)
@@ -176,11 +169,7 @@ public class NovelBuilder {
     public NovelBuilder setSource(String hostUrl) throws ClassNotFoundException, IOException {
         Source source;
         try {
-            String sourcesFolder = GrabberUtils.getCurrentPath() + "/sources";
-            File dir = new File(sourcesFolder);
-            URL loadPath = dir.toURI().toURL();
-            URL[] urls = new URL[]{loadPath};
-            URLClassLoader classLoader = new URLClassLoader(urls);
+            ClassLoader classLoader = GrabberUtils.sourceClassLoader();
 
             String domain = GrabberUtils.getDomainName(hostUrl)
                     .replaceAll("[^A-Za-z0-9]", "_");

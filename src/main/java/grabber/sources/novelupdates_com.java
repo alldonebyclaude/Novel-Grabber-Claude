@@ -4,8 +4,6 @@ import grabber.*;
 import net.dankito.readability4j.Article;
 import net.dankito.readability4j.Readability4J;
 import net.dankito.readability4j.extended.Readability4JExtended;
-import org.jsoup.Connection;
-import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,9 +12,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import system.Config;
 
-import java.io.IOException;
 import java.util.*;
 import java.time.Duration;
 
@@ -51,7 +47,7 @@ public class novelupdates_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window);
         novel.headlessDriver.driver.navigate().to(novel.novelLink);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
@@ -128,7 +124,7 @@ public class novelupdates_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         return blacklistedTags;
     }
 

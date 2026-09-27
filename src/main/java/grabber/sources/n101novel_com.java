@@ -45,7 +45,7 @@ public class n101novel_com implements Source {
     }
 
     public List<Chapter> getChapterList() {
-        List<Chapter> chapterList = new ArrayList();
+        List<Chapter> chapterList = new ArrayList<>();
         try {
             if (novel.novelLink.contains("/txt/")) {
                 toc = Jsoup.connect(novel.novelLink)
@@ -110,7 +110,7 @@ public class n101novel_com implements Source {
     }
 
     public List<String> getBlacklistedTags() {
-        List blacklistedTags = new ArrayList();
+        List<String> blacklistedTags = new ArrayList<>();
         return blacklistedTags;
     }
 
