@@ -53,7 +53,7 @@ class DeprecatedSourcesTest {
     @Test
     void downloadingFromADeprecatedSourceWarns() throws Exception {
         assertTrue(sourceMessages("https://boxnovel.com/novel/test/").contains("BoxNovel.com is deprecated"));
-        assertFalse(sourceMessages("https://www.royalroad.com/fiction/1/test").contains("deprecated"));
+        assertFalse(sourceMessages("https://novellunar.com/novel/test").contains("deprecated"));
     }
 
     private static String sourceMessages(String link) throws Exception {

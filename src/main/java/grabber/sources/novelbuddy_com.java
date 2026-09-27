@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @deprecated The site moved (checked 2026-09-24): it now redirects to novelbuddy.me, which has no source yet.
+ * @deprecated The site moved (checked 2026-09-24): it now redirects to novelbuddy.me; use the novelbuddy_me source.
  * Support will be removed in a future release.
  */
 @Deprecated(forRemoval = true)

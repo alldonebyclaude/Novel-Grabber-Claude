@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @deprecated The site moved (checked 2026-09-24): it now redirects to novelsonline.org, which has no source yet.
+ * @deprecated The site moved (checked 2026-09-24): it now redirects to novelsonline.org; use the novelsonline_org source.
  * Support will be removed in a future release.
  */
 @Deprecated(forRemoval = true)

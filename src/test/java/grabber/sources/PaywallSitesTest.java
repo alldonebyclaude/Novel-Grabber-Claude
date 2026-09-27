@@ -38,7 +38,7 @@ class PaywallSitesTest {
     void downloadingFromAPaywallSiteShowsItsNote() throws Exception {
         String messages = sourceMessages("https://www.dreame.com/story/1244749568-the-silver-wolf");
         assertTrue(messages.contains("Dreame is a paywall site"), messages);
-        assertFalse(sourceMessages("https://www.royalroad.com/fiction/1/test").contains("paywall"));
+        assertFalse(sourceMessages("https://novellunar.com/novel/test").contains("paywall"));
     }
 
     private static String sourceMessages(String link) throws Exception {

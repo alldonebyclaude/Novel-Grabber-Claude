@@ -1,0 +1,63 @@
+{
+ "success": true,
+ "data": {
+  "chapters": [
+   {
+    "id": "DQPpJQeY",
+    "url": "/cultivation-online/chapter-2646-yuans-testimony-3",
+    "name": "Chapter 2646: Yuan’s Testimony(3)",
+    "slug": "chapter-2646-yuans-testimony-3",
+    "views": 33,
+    "comments_count": 0,
+    "updated_at": "2026-09-23T13:02:29.000Z",
+    "number": 2646,
+    "cv": 1790228813763
+   },
+   {
+    "id": "DEpm1RMY",
+    "url": "/cultivation-online/chapter-2645-yuans-testimony-2",
+    "name": "Chapter 2645: Yuan’s Testimony(2)",
+    "slug": "chapter-2645-yuans-testimony-2",
+    "views": 42,
+    "comments_count": 0,
+    "updated_at": "2026-09-22T15:00:29.000Z",
+    "number": 2645,
+    "cv": 1790228813763
+   },
+   {
+    "id": "29yKR6A2",
+    "url": "/cultivation-online/chapter-2644-yuans-testimony",
+    "name": "Chapter 2644: Yuan’s Testimony",
+    "slug": "chapter-2644-yuans-testimony",
+    "views": 40,
+    "comments_count": 0,
+    "updated_at": "2026-09-21T13:54:55.000Z",
+    "number": 2644,
+    "cv": 1790228813763
+   },
+   {
+    "id": "DV9qmPvY",
+    "url": "/cultivation-online/chapter-2-mysterious-little-girl",
+    "name": "Chapter 2 - Mysterious Little Girl",
+    "slug": "chapter-2-mysterious-little-girl",
+    "views": 11650,
+    "comments_count": 2,
+    "updated_at": "2023-02-24T23:40:46.000Z",
+    "number": 2,
+    "cv": 1790228813763
+   },
+   {
+    "id": "81xalK42",
+    "url": "/cultivation-online/chapter-1-cultivation-online",
+    "name": "Chapter 1 - Cultivation Online",
+    "slug": "chapter-1-cultivation-online",
+    "views": 12018,
+    "comments_count": 3,
+    "updated_at": "2023-02-24T23:40:46.000Z",
+    "number": 1,
+    "cv": 1790228813763
+   }
+  ]
+ },
+ "message": "Chapter list retrieved successfully"
+}
