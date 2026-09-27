@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): the domain is parked.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class fastnovel_net implements Source {
     private final String name = "FastNovel";
     private final String url = "https://fastnovel.org/";

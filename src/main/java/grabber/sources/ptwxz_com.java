@@ -17,6 +17,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site moved (checked 2026-09-24): ptwxz.com now redirects to piaotia.com; use the piaotia_com source.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class ptwxz_com implements Source {
     private final String name = "Piaotian";
     private final String url = "https://www.ptwxz.com/";

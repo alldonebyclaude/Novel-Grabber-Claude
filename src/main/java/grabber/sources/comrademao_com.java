@@ -10,6 +10,11 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): the domain now redirects to an ad network.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class comrademao_com implements Source {
     private final String name = "Comrade Mao";
     private final String url = "https://comrademao.com";

@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): the domain is up for auction.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class blackbox_tl_com implements Source {
     private final String name = "Blackbox Translations";
     private final String url = "https://blackbox-tl.com/";

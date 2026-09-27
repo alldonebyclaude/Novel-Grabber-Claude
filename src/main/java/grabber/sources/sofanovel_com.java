@@ -21,6 +21,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): the domain no longer exists.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class sofanovel_com implements Source {
     private final String name = "SofaNovel";
     private final String url = "https://www.sofanovel.com/";

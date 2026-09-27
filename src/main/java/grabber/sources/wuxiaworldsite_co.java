@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): the domain now hosts an unrelated gambling site.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class wuxiaworldsite_co implements Source {
     private final String name = "WuxiaWorldSite.co";
     private final String url = "https://wuxiaworldsite.co/";

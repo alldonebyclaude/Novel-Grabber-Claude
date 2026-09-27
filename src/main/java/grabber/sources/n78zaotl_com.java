@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): the domain no longer exists.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class n78zaotl_com implements Source {
     private final String name = "78ZaoTL";
     private final String url = "https://www.78zaotl.com/";

@@ -19,6 +19,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is gone (checked 2026-09-24): novelfun.net is now a different, Thai-language reading site. The
+ * old novel pages return 404 and the chapter list API no longer exists. Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class novelfun_net implements Source {
     private final String name = "NovelFun";
     private final String url = "https://novelfun.net/";

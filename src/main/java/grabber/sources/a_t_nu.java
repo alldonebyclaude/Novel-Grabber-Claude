@@ -16,6 +16,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): the domain no longer exists.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class a_t_nu implements Source {
     private final String name = "Active Translations";
     private final String url = "https://a-t.nu/";

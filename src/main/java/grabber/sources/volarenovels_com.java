@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site moved (checked 2026-09-24): Volare Novels merged into Wuxiaworld; use the Wuxiaworld.com source.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class volarenovels_com implements Source {
     private final String name = "Volare Novels";
     private final String url = "https://volarenovels.com";

@@ -15,6 +15,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): the domain is parked.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class mtlnovels_com implements Source {
     private final String name = "MTLNovels";
     private final String url = "https://www.mtlnovels.com/";

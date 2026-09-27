@@ -15,6 +15,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24, rechecked 2026-09-27): the server answers every request
+ * with a Cloudflare 522 (origin down). Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class creativenovels_com implements Source {
     private final String name = "Creative Novels";
     private final String url = "https://creativenovels.com";

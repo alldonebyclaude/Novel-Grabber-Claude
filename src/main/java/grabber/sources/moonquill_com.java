@@ -15,6 +15,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site moved (checked 2026-09-24): moonquill.com is now the publisher's book site and its web fiction
+ * is on moonquillnovels.com; use the moonquillnovels_com source. Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class moonquill_com implements Source {
     private final String name = "MoonQuill";
     private final String url = "https://moonquill.com";

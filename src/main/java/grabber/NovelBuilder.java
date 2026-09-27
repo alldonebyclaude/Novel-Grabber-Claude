@@ -195,6 +195,10 @@ public class NovelBuilder {
             GrabberUtils.info(novel.window, source.getName() + " is a paywall site: "
                     + source.getClass().getAnnotation(PaywallSite.class).value());
         }
+        if (source.isDeprecated()) {
+            GrabberUtils.info(novel.window, source.getName() + " is deprecated: the site is offline, has moved or can't be "
+                    + "supported any more, and support will be removed in a future release. Downloads from it may fail.");
+        }
         novel.source = source;
         return this;
     }

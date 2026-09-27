@@ -19,6 +19,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site moved (checked 2026-09-24): it now redirects to novelbuddy.me, which has no source yet.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class novelbuddy_com implements Source {
     private final String name = "NovelBuddy";
     private final String url = "https://novelbuddy.com/";

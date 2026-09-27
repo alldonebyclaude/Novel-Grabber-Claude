@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): the domain is parked.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class readlightnovel_org implements Source {
     private final String name = "ReadLightNovel";
     private final String url = "https://www.readlightnovel.org/";

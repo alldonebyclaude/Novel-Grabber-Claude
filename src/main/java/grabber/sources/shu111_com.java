@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): requests time out.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class shu111_com implements Source {
     private final String name = "shu111";
     private final String url = "http://shu111.com/";

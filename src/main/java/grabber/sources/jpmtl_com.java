@@ -18,6 +18,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is gone (checked 2026-09-24): jpmtl.com only shows a "Coming Soon" page.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class jpmtl_com implements Source {
     private final String name = "JPMTL";
     private final String url = "https://jpmtl.com/";

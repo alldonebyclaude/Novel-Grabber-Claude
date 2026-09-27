@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24, rechecked 2026-09-27): the domain no longer resolves
+ * (NXDOMAIN). Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class n101novel_com implements Source {
     private final String name = "101novel";
     private final String url = "https://www.101novel.com/";

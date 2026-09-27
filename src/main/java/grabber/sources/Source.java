@@ -24,6 +24,14 @@ public interface Source {
     String toString();
 
     /**
+     * Whether this source is marked {@code @Deprecated}: the site is gone, has moved or can't be supported any more,
+     * and support will be removed.
+     */
+    default boolean isDeprecated() {
+        return getClass().isAnnotationPresent(Deprecated.class);
+    }
+
+    /**
      * Whether this source is marked {@link grabber.PaywallSite}: the site sells its chapters.
      */
     default boolean isPaywallSite() {

@@ -15,6 +15,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * @deprecated The site is gone (checked 2026-09-24): wuxiaworld.online serves a blank page.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class wuxiaworld_online implements Source {
     private final String name = "WuxiaWorld.online";
     private final String url = "https://wuxiaworld.online";

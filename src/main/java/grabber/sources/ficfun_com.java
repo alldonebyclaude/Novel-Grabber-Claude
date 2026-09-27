@@ -16,6 +16,12 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+/**
+ * @deprecated The site moved (checked 2026-09-24): ficfun.com is no longer a reading platform but a promotional blog
+ * with short posts per novel that link to Dreame's app; the chapter pages this source reads are gone. The same
+ * stories are on dreame.com. Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class ficfun_com implements Source {
     private final String name = "FicFun";
     private final String url = "https://ficfun.com";

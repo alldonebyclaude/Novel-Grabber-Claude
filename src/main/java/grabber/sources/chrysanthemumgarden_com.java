@@ -15,6 +15,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * @deprecated Chrysanthemum Garden deliberately scrambles its chapter text so it can't be copied: the letters inside
+ * its {@code .jum} elements are swapped for others, and only the site's own page shows them correctly. This source
+ * reverses that with the hard-coded letter map below, which means working around the site's copy protection. We
+ * don't maintain or extend code like that, so the source is not repaired or tested (checked 2026-09-24) and will
+ * be removed in a future release. Downloading from the site in the app's browser mode would not help either,
+ * because the text is scrambled in the page itself.
+ */
+@Deprecated(forRemoval = true)
 public class chrysanthemumgarden_com implements Source {
     private final String name = "Chrysanthemum Garden";
     private final String url = "https://chrysanthemumgarden.com";

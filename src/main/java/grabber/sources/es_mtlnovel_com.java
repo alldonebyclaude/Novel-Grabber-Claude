@@ -15,6 +15,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * @deprecated The site is offline (checked 2026-09-24): requests time out. Use the MTL-Novel source
+ * for mtl-novel.com instead ({@code mtl_novel_com}), which has English translations only.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class es_mtlnovel_com implements Source {
     private final String name = "ES MTLNovel";
     private final String url = "https://es.mtlnovel.com";

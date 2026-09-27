@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site moved (checked 2026-09-24): readwn.com now redirects to wuxiabox.com; use the wuxiabox_com
+ * source. Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class readwn_com implements Source {
     private final String name = "Readwn.com";
     private final String url = "https://www.readwn.com/";

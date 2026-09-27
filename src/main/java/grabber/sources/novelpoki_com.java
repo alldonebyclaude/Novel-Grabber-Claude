@@ -14,6 +14,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated The site is gone (checked 2026-09-24): novelpoki.com shows an empty directory listing and its certificate has expired.
+ * Support will be removed in a future release.
+ */
+@Deprecated(forRemoval = true)
 public class novelpoki_com implements Source {
     private final String name = "NovelPoki.com";
     private final String url = "http://novelpoki.com/";
