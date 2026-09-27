@@ -1,5 +1,6 @@
 Author: Flameish
 GitHub: https://github.com/Flameish
+Fork (one-time update, not maintained): https://github.com/alldonebyclaude/Novel-Grabber-Claude
 
 MIT License
 
