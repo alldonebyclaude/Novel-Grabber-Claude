@@ -61,7 +61,7 @@ public class EmailNotification {
         Email email = EmailBuilder.startingBlank()
                 .withRecipients(new Recipient(null, config.getReceiverEmail(), Message.RecipientType.TO, null))
                 .from(config.getReceiverEmail())
-                .withSubject("[Novel-Grabber]"+novel.metadata.getTitle() + " - Update")
+                .withSubject("[Novel-Grabber-Claude]"+novel.metadata.getTitle() + " - Update")
                 .withHTMLText(links.toString())
                 .buildEmail();
 
@@ -82,7 +82,7 @@ public class EmailNotification {
         Email email = EmailBuilder.startingBlank()
                 .withRecipients(new Recipient(null, config.getReceiverEmail(), Message.RecipientType.TO, null))
                 .from(config.getReceiverEmail())
-                .withSubject("[Novel-Grabber]"+novel.metadata.getTitle() +" - Update")
+                .withSubject("[Novel-Grabber-Claude]"+novel.metadata.getTitle() +" - Update")
                 .withHTMLText(links.toString())
                 .withAttachment(epub.getName(), epub_source)
                 .buildEmail();

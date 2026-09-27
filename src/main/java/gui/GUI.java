@@ -1294,7 +1294,7 @@ public class GUI extends JFrame {
 
     private void initialize() {
         this.add(rootPanel);
-        this.setTitle("Novel-Grabber " + init.versionNumber);
+        this.setTitle("Novel-Grabber-Claude " + init.versionNumber);
         ImageIcon favicon = new ImageIcon(getClass().getResource("/images/favicon.png"));
         this.setIconImage(favicon.getImage());
         this.setMinimumSize(new Dimension(1000, 700));
@@ -1324,7 +1324,7 @@ public class GUI extends JFrame {
         ActionListener openWindow = e -> setVisible(true);
 
         PopupMenu popup = new PopupMenu();
-        MenuItem topLable = new MenuItem("Novel-Grabber");
+        MenuItem topLable = new MenuItem("Novel-Grabber-Claude");
         popup.add(topLable);
         MenuItem aboutLabel = new MenuItem("About");
         aboutLabel.addActionListener(arg01 -> {
@@ -1340,7 +1340,7 @@ public class GUI extends JFrame {
             scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
             scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
             scrollPane.setBounds(0, 0, 1000, 1000);
-            JOptionPane.showOptionDialog(null, scrollPane, "About Novel-Grabber", JOptionPane.PLAIN_MESSAGE, JOptionPane.PLAIN_MESSAGE, null, null, null);
+            JOptionPane.showOptionDialog(null, scrollPane, "About Novel-Grabber-Claude", JOptionPane.PLAIN_MESSAGE, JOptionPane.PLAIN_MESSAGE, null, null, null);
 
         });
         popup.add(aboutLabel);
@@ -1352,8 +1352,8 @@ public class GUI extends JFrame {
         defaultItem.addActionListener(exitListener);
         popup.add(defaultItem);
 
-        trayIcon = new TrayIcon(favicon.getImage(), "Novel-Grabber", popup);
-        trayIcon.setToolTip("Novel-Grabber");
+        trayIcon = new TrayIcon(favicon.getImage(), "Novel-Grabber-Claude", popup);
+        trayIcon.setToolTip("Novel-Grabber-Claude");
         trayIcon.setImageAutoSize(true);
 
         try {
@@ -2238,7 +2238,7 @@ public class GUI extends JFrame {
         panel17.add(manGetImages, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         manUseHeaderlessBrowser = new JCheckBox();
         manUseHeaderlessBrowser.setText("Use Headerless Browser");
-        manUseHeaderlessBrowser.setToolTipText("Novel-Grabber will visit the websites in a browser.");
+        manUseHeaderlessBrowser.setToolTipText("Novel-Grabber-Claude will visit the websites in a browser.");
         panel17.add(manUseHeaderlessBrowser, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         manDispalyChapterTitleCheckbox = new JCheckBox();
         manDispalyChapterTitleCheckbox.setText("Display chapter title");

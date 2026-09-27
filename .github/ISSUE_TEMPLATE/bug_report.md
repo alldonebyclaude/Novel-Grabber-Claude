@@ -23,7 +23,7 @@ assignees: ''
 
 
 **Logs**
-<!--- please post the relevant log file/part of Novel-Grabber.jar (inside the bin folder)  -->
+<!--- please post the relevant log file/part of Novel-Grabber-Claude.jar (inside the bin folder)  -->
 
 
 **Additional context**

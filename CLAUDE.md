@@ -1,4 +1,4 @@
-# Novel-Grabber: notes for Claude
+# Novel-Grabber-Claude: notes for Claude
 
 A Java 25 desktop and command-line tool that downloads web novels and exports them as EPUB, PDF or other formats.
 It's a fork of Flameish/Novel-Grabber, which is no longer maintained. The work here was a one-time update made by Claude; the fork isn't maintained either (see the README). Anyone may continue it, and these notes are for whoever does.
@@ -13,7 +13,7 @@ It's a fork of Flameish/Novel-Grabber, which is no longer maintained. The work h
 
 ## Commands
 - Build: `mvn -q -DskipTests package`
-- Installable zip: `mvn package` builds `target/Novel-Grabber-<version>.zip` (jar, `sources/`, start scripts, README.txt)
+- Installable zip: `mvn package` builds `target/Novel-Grabber-Claude-<version>.zip` (jar, `sources/`, start scripts, README.txt)
 - Offline unit tests: `mvn test` (must pass before any commit)
 - Live smoke tests (hit the real site, run only on request): `mvn test -Dgroups=live`
 - Single test class: `mvn test -Dtest=NovellunarComTest`

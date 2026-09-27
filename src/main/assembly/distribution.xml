@@ -8,18 +8,18 @@
 	<formats>
 		<format>zip</format>
 	</formats>
-	<baseDirectory>Novel-Grabber</baseDirectory>
+	<baseDirectory>Novel-Grabber-Claude</baseDirectory>
 	<files>
 		<file>
 			<source>${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar</source>
-			<destName>Novel-Grabber.jar</destName>
+			<destName>Novel-Grabber-Claude.jar</destName>
 		</file>
 		<file>
-			<source>src/main/dist/Novel-Grabber.bat</source>
+			<source>src/main/dist/Novel-Grabber-Claude.bat</source>
 			<lineEnding>crlf</lineEnding>
 		</file>
 		<file>
-			<source>src/main/dist/novel-grabber.sh</source>
+			<source>src/main/dist/novel-grabber-claude.sh</source>
 			<lineEnding>unix</lineEnding>
 			<fileMode>0755</fileMode>
 		</file>

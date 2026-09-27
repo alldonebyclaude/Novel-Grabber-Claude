@@ -148,7 +148,7 @@ public class Config {
             prop.setProperty("telegramDownloadLimit", String.valueOf(getTelegramDownloadLimit()));
             prop.setProperty("telegramImagesAllowed", String.valueOf(isTelegramImagesAllowed()));
 
-            prop.store(writer, "Novel-Grabber version: " + init.versionNumber);
+            prop.store(writer, "Novel-Grabber-Claude version: " + init.versionNumber);
         } catch (IOException e) {
             GrabberUtils.err(e.getMessage(), e);
         }

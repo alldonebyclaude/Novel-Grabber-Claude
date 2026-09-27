@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
      
 	<groupId>com.github.flameish</groupId>
-	<artifactId>novel-grabber</artifactId>
+	<artifactId>novel-grabber-claude</artifactId>
 	<version>3.10.3</version>
 	  
 	<properties>
@@ -219,11 +219,11 @@
 							<rules>
 								<requireJavaVersion>
 									<version>[25,)</version>
-									<message>Novel-Grabber requires JDK 25 or newer.</message>
+									<message>Novel-Grabber-Claude requires JDK 25 or newer.</message>
 								</requireJavaVersion>
 								<requireMavenVersion>
 									<version>[4.0.0-rc-6,)</version>
-									<message>Novel-Grabber requires Maven 4.</message>
+									<message>Novel-Grabber-Claude requires Maven 4.</message>
 								</requireMavenVersion>
 							</rules>
 						</configuration>
@@ -253,7 +253,7 @@
 							</archive>
 						</configuration>
 					</execution>
-					<!-- The installable zip (target/Novel-Grabber-<version>.zip). Must come after make-assembly,
+					<!-- The installable zip (target/Novel-Grabber-Claude-<version>.zip). Must come after make-assembly,
 					     because it contains the jar that execution builds. -->
 					<execution>
 						<id>distribution</id>
@@ -265,7 +265,7 @@
 							<descriptors>
 								<descriptor>src/main/assembly/distribution.xml</descriptor>
 							</descriptors>
-							<finalName>Novel-Grabber-${project.version}</finalName>
+							<finalName>Novel-Grabber-Claude-${project.version}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
 							<attach>false</attach>
 						</configuration>

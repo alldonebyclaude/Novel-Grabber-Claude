@@ -1,5 +1,5 @@
-# ![alt text](https://i.imgur.com/LrV2tLe.png) Novel-Grabber
-Novel-Grabber is a GUI based web scraper that can download and convert chapters into EPUB from various supported web novel sites or from any other site manually.
+# ![alt text](https://i.imgur.com/LrV2tLe.png) Novel-Grabber-Claude
+Novel-Grabber-Claude is a GUI based web scraper that can download and convert chapters into EPUB from various supported web novel sites or from any other site manually.
 
 > **This fork is not maintained.** It is a one-time update of [Flameish/Novel-Grabber](https://github.com/Flameish/Novel-Grabber),
 > which is no longer developed, and there are no plans to keep it up to date. Sites change often, so sources will break
@@ -31,10 +31,10 @@ The sources were checked against the sites as they were in September 2026 and ha
 
 ## How to use
 ### Running the program
-Unzip `Novel-Grabber-<version>.zip` into a folder you can write to (not `C:\Program Files`: settings are saved next to the jar) and start it:
+Unzip `Novel-Grabber-Claude-<version>.zip` into a folder you can write to (not `C:\Program Files`: settings are saved next to the jar) and start it:
 
-* Windows: double-click `Novel-Grabber.bat`
-* Linux / macOS: `./novel-grabber.sh`
+* Windows: double-click `Novel-Grabber-Claude.bat`
+* Linux / macOS: `./novel-grabber-claude.sh`
 
 The `README.txt` inside the zip explains installing and updating. To build the zip yourself, see [Building](#building).
 
@@ -68,7 +68,7 @@ Or you can [specify a CSS selector manually](https://github.com/Flameish/Novel-G
 2. Input the selector for the "Next-Chapter" button. You want to select the `<a>` tag of it. (via css selector)
 
 ### CLI
-**Use these arguments with the main `Novel-Grabber.jar` from inside the `bin` folder!**
+**Use these arguments with the main `Novel-Grabber-Claude.jar` from inside the `bin` folder!**
 
 [] = optional parameters
 {} = arguments for parameter
@@ -92,7 +92,7 @@ Or you can [specify a CSS selector manually](https://github.com/Flameish/Novel-G
 
 Example:
 
-	java -jar Novel-Grabber.jar -link http://host.com/novel/ -chapters 15 last -getImages
+	java -jar Novel-Grabber-Claude.jar -link http://host.com/novel/ -chapters 15 last -getImages
 
 ### Telegram bot
 
@@ -103,7 +103,7 @@ By default the bot will read the output for `/info` from a `info.txt` file insid
 
 To start the bot you need to use the `-telegramBot` parameter:
 
-	java -jar Novel-Grabber.jar -telegramBot
+	java -jar Novel-Grabber-Claude.jar -telegramBot
 
 ## Notes on sites
 When a download starts, the app shows a notice if one of these applies to the site.
@@ -154,7 +154,7 @@ Please use with appropriate wait times. Downloaded chapters are for private use 
 ## Building
 Building needs a JDK 25 and [Maven 4](https://maven.apache.org/); the build stops with an error on older versions.
 
-    mvn package                  # runs the tests and builds target/Novel-Grabber-<version>.zip
+    mvn package                  # runs the tests and builds target/Novel-Grabber-Claude-<version>.zip
     mvn -DskipTests package      # without the tests
     mvn test -Dgroups=live       # tests that visit the real sites (slow, only when needed)
 
@@ -162,7 +162,7 @@ The normal tests don't use the network: each source is tested against saved page
 story text replaced by placeholders.
 
 ## Credits & Libraries
-Novel Grabber was built in Java with:
+Novel-Grabber-Claude was built in Java with:
 
 * [jsoup](https://www.jsoup.org/)
 * [json-simple](https://code.google.com/archive/p/json-simple/)

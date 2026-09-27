@@ -114,7 +114,7 @@ public class init {
     }
 
     private static void printHelp() {
-        System.out.println("Novel-Grabber is a gui based web scrapper that can download and \n" +
+        System.out.println("Novel-Grabber-Claude is a gui based web scrapper that can download and \n" +
                 "convert chapters into EPUB from various supported web/light novel sites \n" +
                 "or from any other site manually.\n" +
                 "\n" +
@@ -134,8 +134,8 @@ public class init {
                 "  [-getImages]\t\t\t\t\tGrab images from chapter.\n" +
                 "  \n" +
                 "Examples:\n" +
-                "java -jar Novel-Grabber.jar -link https://myhost.com/novel/a-novel\n" +
-                "java -jar Novel-Grabber.jar -link https://myhost.com/novel/a-novel -chapters 5 last -displayTitle -wait 3000");
+                "java -jar Novel-Grabber-Claude.jar -link https://myhost.com/novel/a-novel\n" +
+                "java -jar Novel-Grabber-Claude.jar -link https://myhost.com/novel/a-novel -chapters 5 last -displayTitle -wait 3000");
     }
 
     // Set font for each swing element

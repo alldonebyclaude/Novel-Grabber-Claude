@@ -1,6 +1,6 @@
 @echo off
-rem Starts Novel-Grabber. Without arguments it opens the window, with arguments it runs
-rem the command line version, e.g.  Novel-Grabber.bat -link https://host.com/novel/ -chapters 1 5
+rem Starts Novel-Grabber-Claude. Without arguments it opens the window, with arguments it runs
+rem the command line version, e.g.  Novel-Grabber-Claude.bat -link https://host.com/novel/ -chapters 1 5
 setlocal
 set "APP_DIR=%~dp0"
 set "REQUIRED_JAVA=25"
@@ -23,21 +23,21 @@ set /a "JAVA_MAJOR=JAVA_MAJOR" 2>nul
 if %JAVA_MAJOR% LSS %REQUIRED_JAVA% goto old_java
 
 if "%~1"=="" goto gui
-"%JAVA%" -jar "%APP_DIR%Novel-Grabber.jar" %*
+"%JAVA%" -jar "%APP_DIR%Novel-Grabber-Claude.jar" %*
 exit /b %ERRORLEVEL%
 
 :gui
-start "" "%JAVAW%" -jar "%APP_DIR%Novel-Grabber.jar"
+start "" "%JAVAW%" -jar "%APP_DIR%Novel-Grabber-Claude.jar"
 exit /b 0
 
 :no_java
-echo Java was not found. Novel-Grabber needs Java %REQUIRED_JAVA% or newer.
-echo Download it from https://adoptium.net/ and start Novel-Grabber again.
+echo Java was not found. Novel-Grabber-Claude needs Java %REQUIRED_JAVA% or newer.
+echo Download it from https://adoptium.net/ and start Novel-Grabber-Claude again.
 goto fail
 
 :old_java
-echo Novel-Grabber needs Java %REQUIRED_JAVA% or newer, but found Java %JAVA_VERSION%.
-echo Download a newer Java from https://adoptium.net/ and start Novel-Grabber again.
+echo Novel-Grabber-Claude needs Java %REQUIRED_JAVA% or newer, but found Java %JAVA_VERSION%.
+echo Download a newer Java from https://adoptium.net/ and start Novel-Grabber-Claude again.
 goto fail
 
 :fail

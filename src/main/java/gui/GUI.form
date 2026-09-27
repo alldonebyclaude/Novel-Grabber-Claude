@@ -876,7 +876,7 @@
                         </constraints>
                         <properties>
                           <text value="Use Headerless Browser"/>
-                          <toolTipText value="Novel-Grabber will visit the websites in a browser."/>
+                          <toolTipText value="Novel-Grabber-Claude will visit the websites in a browser."/>
                         </properties>
                       </component>
                       <component id="a99dd" class="javax.swing.JCheckBox" binding="manDispalyChapterTitleCheckbox">

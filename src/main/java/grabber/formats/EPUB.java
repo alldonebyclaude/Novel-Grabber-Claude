@@ -70,7 +70,7 @@ public class EPUB {
             builder.append("<meta name=\"description\" content=\"" + novelMetadata.getDescription() + "\"></meta>\n");
         builder.append("<meta name=\"url\" content=\"" + novel.novelLink + "\"></meta>\n");
         builder.append("<meta name=\"copyright\" content=\"This EPUB is for private use only.\"></meta>\n");
-        builder.append("<meta name=\"generator\" content=\"Novel-Grabber " + init.versionNumber + "\"></meta>\n");
+        builder.append("<meta name=\"generator\" content=\"Novel-Grabber-Claude " + init.versionNumber + "\"></meta>\n");
         if (novel.downloadTask != null
                 && novel.downloadTask.getUser().getTelegramUser().firstName() != null
                 && novel.downloadTask.getUser().getTelegramUser().lastName() != null) {
