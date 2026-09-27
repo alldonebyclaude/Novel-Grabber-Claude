@@ -1,6 +1,8 @@
 package grabber;
 
 import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -82,17 +84,45 @@ public class NovelMetadata {
         if(coverURL != null && !coverURL.isEmpty()) {
             bufferedCover = GrabberUtils.getImage(coverURL);
             String coverName = GrabberUtils.getFilenameFromUrl(coverURL);
-            coverFormat = GrabberUtils.getFileExtension(coverName) == null ? "png" : GrabberUtils.getFileExtension(coverName);
+            coverFormat = writableFormat(coverName == null ? null : GrabberUtils.getFileExtension(coverName));
             if(bufferedCover == null) {
+                GrabberUtils.err("Could not decode cover image " + coverURL + ", using placeholder cover.");
                 try {
                     bufferedCover = ImageIO.read(this.getClass().getResource("/images/cover_placeholder.png"));
                     coverFormat = "png";
                 } catch (IOException e) {
                     GrabberUtils.err(e.getMessage(), e);
                 }
+            } else if (coverFormat.equals("jpg") || coverFormat.equals("jpeg")) {
+                bufferedCover = withoutAlpha(bufferedCover);
             }
         }
     }
+    /**
+     * Returns the format the cover is stored in. The cover is written with {@code ImageIO.write}, which can read
+     * more formats than it can write (e.g. WebP), so anything without an ImageIO writer is stored as JPEG.
+     * Covers without an extension keep the old PNG default.
+     */
+    static String writableFormat(String extension) {
+        if (extension == null) return "png";
+        if (!ImageIO.getImageWritersBySuffix(extension).hasNext()) return "jpg";
+        return extension;
+    }
+
+    /**
+     * The JPEG writer refuses images with an alpha channel, so transparent covers are flattened onto white.
+     */
+    static BufferedImage withoutAlpha(BufferedImage image) {
+        if (!image.getColorModel().hasAlpha()) return image;
+        BufferedImage rgb = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = rgb.createGraphics();
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, image.getWidth(), image.getHeight());
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+        return rgb;
+    }
+
     public void setBufferedCover(BufferedImage coverImage, String coverFormat) {
         this.bufferedCover = coverImage;
         this.coverFormat = coverFormat;

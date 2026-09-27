@@ -196,9 +196,37 @@ public class EPUB {
             book.getResources().add(resource);
             book.setCoverImage(resource);
             inputStream.close();
+            addCoverPage(resource);
         } catch (IOException e) {
             GrabberUtils.err(novel.window, "Could not add cover to EPUB. " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Adds a page showing the cover image as the first page, so readers open the book on it.
+     * The cover image on its own is only used as the book's thumbnail.
+     */
+    private void addCoverPage(Resource coverImage) {
+        String coverString = htmlHead + NL +
+                "<div style=\"text-align:center\">" + NL +
+                "<img src=\"" + coverImage.getHref() + "\" alt=\"Cover\" style=\"max-width:100%;max-height:100%\"/>" + NL +
+                "</div>" + NL +
+                htmlFoot;
+
+        Document.OutputSettings settings = new Document.OutputSettings();
+        settings.syntax(Document.OutputSettings.Syntax.xml);
+        settings.escapeMode(org.jsoup.nodes.Entities.EscapeMode.xhtml);
+        settings.charset("UTF-8");
+
+        Document doc = Jsoup.parse(coverString);
+        doc.outputSettings(settings);
+
+        Resource coverPage = new Resource(doc.html().getBytes(StandardCharsets.UTF_8), "cover.html");
+        // Books being updated by the library checker already have a cover page; replace it
+        book.getResources().add(coverPage);
+        book.getSpine().getSpineReferences().removeIf(reference -> reference.getResource().getHref().equals(coverPage.getHref()));
+        book.getSpine().getSpineReferences().add(0, new SpineReference(coverPage));
+        book.setCoverPage(coverPage);
     }
 
     public void addToc() {

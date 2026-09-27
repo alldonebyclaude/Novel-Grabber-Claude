@@ -144,6 +144,12 @@
 			<version>7.0.3</version>
 		</dependency>
 		<dependency>
+			<!-- ImageIO has no WebP reader; many sites (e.g. novellunar.com) only serve WebP covers -->
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-webp</artifactId>
+			<version>3.15.2</version>
+		</dependency>
+		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
 			<version>5.10.3</version>
