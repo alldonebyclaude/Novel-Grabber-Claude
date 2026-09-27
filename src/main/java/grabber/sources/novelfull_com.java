@@ -1,5 +1,6 @@
 package grabber.sources;
 
+import grabber.NeedsRealBrowser;
 import grabber.Chapter;
 import grabber.GrabberUtils;
 import grabber.Novel;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@NeedsRealBrowser("Its pages never finish loading in the built-in browser (checked 2026-09-24).")
 public class novelfull_com implements Source {
     private final String name = "Novel Full";
     private final String url = "https://novelfull.com";

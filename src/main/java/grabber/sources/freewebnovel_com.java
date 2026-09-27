@@ -135,7 +135,7 @@ public class freewebnovel_com implements Source {
      */
     private Document load(String pageUrl) {
         Driver browser = browser();
-        browser.driver.navigate().to(pageUrl);
+        browser.navigate(pageUrl);
         long deadline = System.currentTimeMillis() + BOT_CHECK_WAIT.toMillis();
         while (String.valueOf(browser.driver.getTitle()).contains("Just a moment") && System.currentTimeMillis() < deadline) {
             try {
@@ -145,7 +145,7 @@ public class freewebnovel_com implements Source {
                 break;
             }
         }
-        return Jsoup.parse(browser.driver.getPageSource(), browser.driver.getCurrentUrl());
+        return browser.pageDocument();
     }
 
     /**

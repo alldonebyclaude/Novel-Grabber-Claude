@@ -27,6 +27,24 @@ public class NovelBuilder {
     }
 
     /**
+     * The browser for a {@code -headless} argument, e.g. "chrome" gives "Chrome".
+     *
+     * @throws IllegalArgumentException for a browser the app can't start, such as Opera
+     */
+    static String browserFromCli(String argument) {
+        String choices = "Choose headless, chrome, firefox, edge or ie.";
+        return switch (argument.strip().toLowerCase()) {
+            case "headless" -> "Headless";
+            case "chrome" -> "Chrome";
+            case "firefox" -> "Firefox";
+            case "edge" -> "Edge";
+            case "ie" -> "IE";
+            case "opera" -> throw new IllegalArgumentException("-headless opera: Opera is not supported any more. " + choices);
+            default -> throw new IllegalArgumentException("-headless " + argument + ": unknown browser. " + choices);
+        };
+    }
+
+    /**
      * Set novel options from a given CLI string.
      */
     public NovelBuilder fromCLI(Map<String, List<String>> params) throws IOException, ClassNotFoundException {
@@ -38,26 +56,7 @@ public class NovelBuilder {
 
         if(params.containsKey("headless")) {
             novel.useHeadless = true;
-            switch (params.get("headless").get(0).toLowerCase()) {
-                case "firefox":
-                    novel.browser = "Firefox";
-                    break;
-                case "chrome":
-                    novel.browser = "Chrome";
-                    break;
-                case "edge":
-                    novel.browser = "Edge";
-                    break;
-                case "opera":
-                    novel.browser = "Opera";
-                    break;
-                case "ie":
-                    novel.browser = "IE";
-                    break;
-                case "headless":
-                    novel.browser = "Headless";
-                    break;
-            }
+            novel.browser = browserFromCli(params.get("headless").get(0));
             if(params.get("headless").size() > 1) {
                 novel.headlessGUI = params.get("headless").get(1).toLowerCase().equals("gui");
             }
@@ -194,6 +193,11 @@ public class NovelBuilder {
         if (source.isPaywallSite()) {
             GrabberUtils.info(novel.window, source.getName() + " is a paywall site: "
                     + source.getClass().getAnnotation(PaywallSite.class).value());
+        }
+        if (source.needsRealBrowser()) {
+            GrabberUtils.info(novel.window, source.getName() + ": "
+                    + source.getClass().getAnnotation(NeedsRealBrowser.class).value()
+                    + " It may work with Chrome chosen as the browser in the settings (not tested).");
         }
         if (source.isDeprecated()) {
             GrabberUtils.info(novel.window, source.getName() + " is deprecated: the site is offline, has moved or can't be "

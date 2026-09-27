@@ -37,4 +37,11 @@ public interface Source {
     default boolean isPaywallSite() {
         return getClass().isAnnotationPresent(grabber.PaywallSite.class);
     }
+
+    /**
+     * Whether this source is marked {@link grabber.NeedsRealBrowser}: the app's built-in browser can't load the site.
+     */
+    default boolean needsRealBrowser() {
+        return getClass().isAnnotationPresent(grabber.NeedsRealBrowser.class);
+    }
 }

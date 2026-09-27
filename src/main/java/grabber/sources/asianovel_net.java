@@ -5,7 +5,6 @@ import grabber.Driver;
 import grabber.GrabberUtils;
 import grabber.Novel;
 import grabber.NovelMetadata;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.openqa.selenium.WebDriverException;
@@ -98,7 +97,7 @@ public class asianovel_net implements Source {
     /** Loads a page in the browser. If the site shows its bot check first, waits for the browser to get past it. */
     private Document load(String pageUrl) {
         Driver browser = browser();
-        browser.driver.navigate().to(pageUrl);
+        browser.navigate(pageUrl);
         long deadline = System.currentTimeMillis() + BOT_CHECK_WAIT.toMillis();
         while (String.valueOf(browser.driver.getTitle()).contains("Just a moment") && System.currentTimeMillis() < deadline) {
             try {
@@ -108,7 +107,7 @@ public class asianovel_net implements Source {
                 break;
             }
         }
-        return Jsoup.parse(browser.driver.getPageSource(), browser.driver.getCurrentUrl());
+        return browser.pageDocument();
     }
 
     /** Reads the story's chapter list, in order. */
@@ -116,7 +115,7 @@ public class asianovel_net implements Source {
         List<Chapter> chapterList = new ArrayList<>();
         for (Element link : storyPage.select("ol.chapter-group__list li a[href*=/chapter/]")) {
             if (link.text().isBlank()) continue;
-            chapterList.add(new Chapter(link.text(), link.attr("abs:href")));
+            chapterList.add(new Chapter(apostrophes(link.text()), link.attr("abs:href")));
         }
         return chapterList;
     }
@@ -136,11 +135,16 @@ public class asianovel_net implements Source {
         Element author = storyPage.selectFirst("a[href*=/author/]");
         Element summary = storyPage.selectFirst("section.story__summary");
 
-        if (title != null) metadata.setTitle(title.text());
+        if (title != null) metadata.setTitle(apostrophes(title.text()));
         if (author != null) metadata.setAuthor(author.text());
         if (summary != null) metadata.setDescription(summary.text());
         metadata.setSubjects(storyPage.select("a[href*=/genre/]").eachText().stream().distinct().toList());
         return metadata;
+    }
+
+    /** The site writes apostrophes as "#*#" in titles, e.g. "Sect#*#s"; this puts them back. */
+    static String apostrophes(String text) {
+        return text.replace("#*#", "'");
     }
 
     static String parseCoverUrl(Document storyPage) {

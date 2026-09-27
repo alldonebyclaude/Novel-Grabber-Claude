@@ -79,13 +79,13 @@ public class moonquill_com implements Source {
         if (novel.headlessDriver == null) {
             novel.headlessDriver = new Driver(novel.window);
         }
-        novel.headlessDriver.driver.navigate().to(chapter.chapterURL);
+        novel.headlessDriver.navigate(chapter.chapterURL);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
-        novel.headlessDriver.driver.navigate().to(chapter.chapterURL);
+        novel.headlessDriver.navigate(chapter.chapterURL);
         novel.headlessDriver.wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#content p")));
         WebElement chapterElement = novel.headlessDriver.driver.findElement(By.cssSelector("body"));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
-        return Jsoup.parse(chapterElement.getAttribute("innerHTML"), baseUrl);
+        return Driver.innerHtml(chapterElement, baseUrl);
     }
 
     public NovelMetadata getMetadata() {

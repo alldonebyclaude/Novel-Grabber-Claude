@@ -76,12 +76,12 @@ public class wuxiaworld_com implements Source {
 
     private Document getTocHeadless() {
         if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window);
-        novel.headlessDriver.driver.navigate().to(novel.novelLink);
+        novel.headlessDriver.navigate(novel.novelLink);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
-        novel.headlessDriver.driver.navigate().to(novel.novelLink);
+        novel.headlessDriver.navigate(novel.novelLink);
         novel.headlessDriver.wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#accordion .chapter-item a")));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
-        Document toc = Jsoup.parse(novel.headlessDriver.driver.getPageSource(), baseUrl);
+        Document toc = novel.headlessDriver.pageDocument(baseUrl);
         novel.headlessDriver.driver.close();
         novel.headlessDriver = null;
         return toc;

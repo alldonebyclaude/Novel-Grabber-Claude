@@ -16,6 +16,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.util.*;
 import java.time.Duration;
 
+@NeedsRealBrowser("Its pages never finish loading in the built-in browser (checked 2026-09-24).")
 public class novelupdates_com implements Source {
     private final String name = "Novel Updates";
     private final String url = "https://novelupdates.com";
@@ -49,14 +50,14 @@ public class novelupdates_com implements Source {
     public List<Chapter> getChapterList() {
         List<Chapter> chapterList = new ArrayList<>();
         if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window);
-        novel.headlessDriver.driver.navigate().to(novel.novelLink);
+        novel.headlessDriver.navigate(novel.novelLink);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
-        novel.headlessDriver.driver.navigate().to(novel.novelLink);
+        novel.headlessDriver.navigate(novel.novelLink);
         novel.headlessDriver.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
         novel.headlessDriver.driver.findElement(By.cssSelector("span.my_popupreading_open")).click();
         novel.headlessDriver.wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div#my_popupreading ol.sp_chp li a[href]")));
-        toc = Jsoup.parse(novel.headlessDriver.driver.getPageSource(), baseUrl);
+        toc = novel.headlessDriver.pageDocument(baseUrl);
         for (Element chapterLink : toc.select("div#my_popupreading ol.sp_chp li a[href]:not(:has(i))")) {
             chapterList.add(new Chapter(chapterLink.text(), chapterLink.attr("abs:href")));
         }
@@ -84,13 +85,13 @@ public class novelupdates_com implements Source {
         if (novel.headlessDriver == null) {
             novel.headlessDriver = new Driver(novel.window);
         }
-        novel.headlessDriver.driver.navigate().to(chapterURL);
+        novel.headlessDriver.navigate(chapterURL);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
-        novel.headlessDriver.driver.navigate().to(chapterURL);
+        novel.headlessDriver.navigate(chapterURL);
         novel.headlessDriver.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         WebElement chapterElement = novel.headlessDriver.driver.findElement(By.cssSelector("body"));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
-        return Jsoup.parse(chapterElement.getAttribute("innerHTML"), baseUrl);
+        return Driver.innerHtml(chapterElement, baseUrl);
     }
 
     private String findChapter(Document doc, String URL) {

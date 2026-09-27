@@ -1,5 +1,6 @@
 package grabber.sources;
 
+import grabber.NeedsRealBrowser;
 import grabber.Chapter;
 import grabber.GrabberUtils;
 import grabber.Novel;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@NeedsRealBrowser("The site's bot check blocks the built-in browser (checked 2026-09-24).")
 public class foxaholic_com implements Source {
     private final String name = "Foxaholic";
     private final String url = "https://foxaholic.com";

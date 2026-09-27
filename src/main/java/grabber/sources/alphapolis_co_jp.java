@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.time.Duration;
 
+@NeedsRealBrowser("The site's bot check blocks the built-in browser (checked 2026-09-24).")
 public class alphapolis_co_jp implements Source {
     private final String name = "AlphaPolis";
     private final String url = "https://www.alphapolis.co.jp/novel/";
@@ -79,13 +80,13 @@ public class alphapolis_co_jp implements Source {
         if (novel.headlessDriver == null) {
             novel.headlessDriver = new Driver(novel.window);
         }
-        novel.headlessDriver.driver.navigate().to(chapterURL);
+        novel.headlessDriver.navigate(chapterURL);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
-        novel.headlessDriver.driver.navigate().to(chapterURL);
+        novel.headlessDriver.navigate(chapterURL);
         novel.headlessDriver.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         WebElement chapterElement = novel.headlessDriver.driver.findElement(By.cssSelector(".novel-body"));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
-        return Jsoup.parse(chapterElement.getAttribute("innerHTML"), baseUrl);
+        return Driver.innerHtml(chapterElement, baseUrl);
     }
 
     private String findChapter(Document doc, String URL) {

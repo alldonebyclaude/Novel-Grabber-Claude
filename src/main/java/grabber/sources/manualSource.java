@@ -80,12 +80,12 @@ public class manualSource implements Source {
 
     private Document getTocHeadless() {
         if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window);
-        novel.headlessDriver.driver.navigate().to(novel.novelLink);
+        novel.headlessDriver.navigate(novel.novelLink);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
-        novel.headlessDriver.driver.navigate().to(novel.novelLink);
+        novel.headlessDriver.navigate(novel.novelLink);
         novel.headlessDriver.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
-        Document toc = Jsoup.parse(novel.headlessDriver.driver.getPageSource(), baseUrl);
+        Document toc = novel.headlessDriver.pageDocument(baseUrl);
         novel.headlessDriver.driver.close();
         novel.headlessDriver = null;
         return toc;
@@ -143,9 +143,9 @@ public class manualSource implements Source {
 
     private Document getPageHeadless(Chapter chapter) {
         if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window);
-        novel.headlessDriver.driver.navigate().to(chapter.chapterURL);
+        novel.headlessDriver.navigate(chapter.chapterURL);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
-        novel.headlessDriver.driver.navigate().to(chapter.chapterURL);
+        novel.headlessDriver.navigate(chapter.chapterURL);
         if (chapterContainer.isEmpty()) { // Wait 5 seconds for everything to finish loading
             novel.headlessDriver.driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(15));
         } else { // Wait until chapter container is located
@@ -153,7 +153,7 @@ public class manualSource implements Source {
         }
         WebElement chapterElement = novel.headlessDriver.driver.findElement(By.cssSelector("body"));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
-        return Jsoup.parse(chapterElement.getAttribute("innerHTML"), baseUrl);
+        return Driver.innerHtml(chapterElement, baseUrl);
     }
 
     // Dummy

@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@NeedsRealBrowser("The site's bot check blocks the built-in browser (checked 2026-09-24).")
 public class fanfiction_net implements Source {
     private final String name = "FanFiction";
     private final String url = "https://fanfiction.net";
@@ -60,12 +61,12 @@ public class fanfiction_net implements Source {
 
     private Document getTocHeadless() {
         if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window);
-        novel.headlessDriver.driver.navigate().to(novel.novelLink);
+        novel.headlessDriver.navigate(novel.novelLink);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
-        novel.headlessDriver.driver.navigate().to(novel.novelLink);
+        novel.headlessDriver.navigate(novel.novelLink);
         //novel.headlessDriver.wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("#chap_select option")));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
-        Document toc = Jsoup.parse(novel.headlessDriver.driver.getPageSource(), baseUrl);
+        Document toc = novel.headlessDriver.pageDocument(baseUrl);
         novel.headlessDriver.driver.close();
         novel.headlessDriver = null;
         return toc;

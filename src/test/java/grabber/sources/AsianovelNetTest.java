@@ -54,12 +54,18 @@ class AsianovelNetTest {
     void metadata() throws Exception {
         NovelMetadata metadata = asianovel_net.parseMetadata(storyPage());
 
-        // The site writes the apostrophe as "#*#"; that's its data
-        assertEquals("The Buddhist Sect#*#s Black Sheep", metadata.getTitle());
+        // The site writes the apostrophe as "#*#"
+        assertEquals("The Buddhist Sect's Black Sheep", metadata.getTitle());
         assertEquals("临十", metadata.getAuthor());
         assertTrue(metadata.getDescription().startsWith("Line 1."), "the summary");
         assertEquals(List.of("BL", "Historical", "Romance", "Yaoi"), metadata.getSubjects());
         assertEquals("https://www.asianovel.net/wp-content/uploads/2026/09/3861.png", asianovel_net.parseCoverUrl(storyPage()));
+    }
+
+    @Test
+    void apostrophesInTitlesArePutBack() {
+        assertEquals("The Sect's Heir", asianovel_net.apostrophes("The Sect#*#s Heir"));
+        assertEquals("No change", asianovel_net.apostrophes("No change"));
     }
 
     @Test

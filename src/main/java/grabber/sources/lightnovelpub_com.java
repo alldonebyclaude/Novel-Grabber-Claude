@@ -1,5 +1,6 @@
 package grabber.sources;
 
+import grabber.NeedsRealBrowser;
 import grabber.Chapter;
 import grabber.GrabberUtils;
 import grabber.Novel;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@NeedsRealBrowser("The site's bot check blocks the built-in browser (checked 2026-09-24).")
 public class lightnovelpub_com implements Source {
     private final String name = "Light Novel Pub";
     private final String url = "https://www.lightnovelpub.com/";

@@ -10,7 +10,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.openqa.selenium.WebDriverException;
@@ -122,7 +121,7 @@ public class babelnovel_com implements Source {
     /** Loads a page in the browser. If the site shows its bot check first, waits for the browser to get past it. */
     private Document load(String pageUrl) {
         Driver browser = browser();
-        browser.driver.navigate().to(pageUrl);
+        browser.navigate(pageUrl);
         long deadline = System.currentTimeMillis() + BOT_CHECK_WAIT.toMillis();
         while (String.valueOf(browser.driver.getTitle()).contains("Just a moment") && System.currentTimeMillis() < deadline) {
             try {
@@ -132,7 +131,7 @@ public class babelnovel_com implements Source {
                 break;
             }
         }
-        return Jsoup.parse(browser.driver.getPageSource(), browser.driver.getCurrentUrl());
+        return browser.pageDocument();
     }
 
     /** The chapter list page for a link to the book or one of its chapters, or null. */

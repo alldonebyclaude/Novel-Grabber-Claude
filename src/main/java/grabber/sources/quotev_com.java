@@ -1,7 +1,6 @@
 package grabber.sources;
 
 import grabber.*;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -12,6 +11,7 @@ import org.openqa.selenium.WebElement;
 import java.util.ArrayList;
 import java.util.List;
 
+@NeedsRealBrowser("The site's bot check blocks the built-in browser (checked 2026-09-24).")
 public class quotev_com implements Source {
     private final String name = "Quotev";
     private final String url = "https://quotev.com";
@@ -58,11 +58,11 @@ public class quotev_com implements Source {
 
     private Document getTocHeadless() {
         if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window);
-        novel.headlessDriver.driver.navigate().to(novel.novelLink);
+        novel.headlessDriver.navigate(novel.novelLink);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
-        novel.headlessDriver.driver.navigate().to(novel.novelLink);
+        novel.headlessDriver.navigate(novel.novelLink);
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
-        Document toc = Jsoup.parse(novel.headlessDriver.driver.getPageSource(), baseUrl);
+        Document toc = novel.headlessDriver.pageDocument(baseUrl);
         novel.headlessDriver.driver.close();
         novel.headlessDriver = null;
         return toc;
@@ -75,12 +75,12 @@ public class quotev_com implements Source {
 
     private Document getPageHeadless(Chapter chapter) {
         if (novel.headlessDriver == null) novel.headlessDriver = new Driver(novel.window);
-        novel.headlessDriver.driver.navigate().to(chapter.chapterURL);
+        novel.headlessDriver.navigate(chapter.chapterURL);
         novel.cookies.forEach((key, value) -> novel.headlessDriver.driver.manage().addCookie(new Cookie(key, value)));
-        novel.headlessDriver.driver.navigate().to(chapter.chapterURL);
+        novel.headlessDriver.navigate(chapter.chapterURL);
         WebElement chapterElement = novel.headlessDriver.driver.findElement(By.cssSelector("body"));
         String baseUrl = novel.headlessDriver.driver.getCurrentUrl().substring(0, GrabberUtils.ordinalIndexOf(novel.headlessDriver.driver.getCurrentUrl(), "/", 3) + 1);
-        return Jsoup.parse(chapterElement.getAttribute("innerHTML"), baseUrl);
+        return Driver.innerHtml(chapterElement, baseUrl);
     }
 
     public NovelMetadata getMetadata() {

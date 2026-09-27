@@ -68,7 +68,7 @@ public class init {
             if(!params.get("link").get(0).isEmpty()) {
                 try {
                     CLI.downloadNovel(params);
-                } catch (ClassNotFoundException | InterruptedException e) {
+                } catch (ClassNotFoundException | InterruptedException | IllegalArgumentException e) {
                     GrabberUtils.err(e.getMessage());
                 } catch (IOException e) {
                     GrabberUtils.err(e.getMessage(), e);
