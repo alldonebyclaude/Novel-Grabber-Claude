@@ -31,6 +31,7 @@ public class Novel {
     public boolean displayChapterTitle = false;
     public boolean noDescription = false;
     public boolean chapterFiles = false; // also write each chapter as a Markdown file (-chapterFiles)
+    public boolean removeHiddenText = false; // remove text the site hides with CSS (-removeHiddenText)
     public String bookNameSuffix = ""; // added to the book's file name, e.g. for a book of a stopped download
     public boolean reverseOrder = false;
     public boolean useHeadless = false;

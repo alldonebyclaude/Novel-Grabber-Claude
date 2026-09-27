@@ -38,6 +38,7 @@ public class Config {
     private boolean useStandardLocation = false;
     private boolean pollingEnabled = true;
     private boolean chapterFiles = false;
+    private boolean removeHiddenText = false;
     private boolean libraryShowOnlyUpdatable = false;
     private boolean libraryNoCovers = false;
     private boolean showNovelFinishedNotification = false;
@@ -83,6 +84,7 @@ public class Config {
             setUseStandardLocation(Boolean.parseBoolean(prop.getProperty("useStandardLocation", String.valueOf(useStandardLocation))));
             setHeadlessList(new ArrayList<>(Arrays.asList(prop.getProperty("headlessList", "").split(","))));
             setChapterFiles(chapterFilesSetting(prop, chapterFiles));
+            setRemoveHiddenText(Boolean.parseBoolean(prop.getProperty("removeHiddenText", String.valueOf(removeHiddenText))));
             setShowNovelFinishedNotification(Boolean.parseBoolean(prop.getProperty("showNovelFinishedNotification", String.valueOf(showNovelFinishedNotification))));
             // Library
             setFrequency(Integer.parseInt(prop.getProperty("frequency", String.valueOf(frequency))));
@@ -130,6 +132,7 @@ public class Config {
             prop.setProperty("useStandardLocation", String.valueOf(isUseStandardLocation()));
             prop.setProperty("headlessList", String.join(",", headlessList));
             prop.setProperty("chapterFiles", String.valueOf(isChapterFiles()));
+            prop.setProperty("removeHiddenText", String.valueOf(isRemoveHiddenText()));
             prop.setProperty("showNovelFinishedNotification", String.valueOf(isShowNovelFinishedNotification()));
             // Library
             prop.setProperty("frequency", String.valueOf(getFrequency()));
@@ -298,6 +301,15 @@ public class Config {
 
     public void setChapterFiles(boolean chapterFiles) {
         this.chapterFiles = chapterFiles;
+    }
+
+    /** Remove text the site hides with CSS, e.g. anti-piracy notices, see {@link grabber.HiddenText}. Off by default. */
+    public boolean isRemoveHiddenText() {
+        return removeHiddenText;
+    }
+
+    public void setRemoveHiddenText(boolean removeHiddenText) {
+        this.removeHiddenText = removeHiddenText;
     }
 
     public boolean isLibraryShowOnlyUpdatable() {

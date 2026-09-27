@@ -212,6 +212,7 @@ public class GUI extends JFrame {
     private JButton saveCookiesButton;
     private JCheckBox manUseAccountCheckBox;
     private JCheckBox settingsChapterFilesCheckBox;
+    private JCheckBox settingsRemoveHiddenTextCheckBox;
     private JButton settingsTelegramBotBtn;
     private JPanel settingsTelegramPanel;
     private JTextField settingsTeleApiTknField;
@@ -1021,6 +1022,7 @@ public class GUI extends JFrame {
             settings.setUseStandardLocation(standardSaveLocationCheckBox.isSelected());
             settings.setAutoGetImages(settingsAlwaysGetImagesCheckBox.isSelected());
             settings.setChapterFiles(settingsChapterFilesCheckBox.isSelected());
+            settings.setRemoveHiddenText(settingsRemoveHiddenTextCheckBox.isSelected());
             settings.setFilenameFormat(settingsNameOutputFormatComboBox.getSelectedIndex());
             settings.setOutputFormat(settingsOutputFormatComboBox.getSelectedIndex());
             settings.setChapterTitleFormat(settingsChapterTitleComboBox.getSelectedIndex());
@@ -1794,6 +1796,8 @@ public class GUI extends JFrame {
         settingsAlwaysGetImagesCheckBox.setSelected(settings.isAutoGetImages());
         settingsChapterFilesCheckBox = new JCheckBox();
         settingsChapterFilesCheckBox.setSelected(settings.isChapterFiles());
+        settingsRemoveHiddenTextCheckBox = new JCheckBox();
+        settingsRemoveHiddenTextCheckBox.setSelected(settings.isRemoveHiddenText());
 
         settingsSavelocationField = new JTextField();
         settingsSavelocationField.setVisible(false);
@@ -2613,6 +2617,9 @@ public class GUI extends JFrame {
         settingsChapterFilesCheckBox.setText("Also save chapters as Markdown files");
         settingsChapterFilesCheckBox.setToolTipText("Write each chapter to its own .md file in a \"<title> (chapters)\" folder, e.g. for translating");
         settingsNovelPanel.add(settingsChapterFilesCheckBox, new GridConstraints(4, 1, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 28), null, 0, false));
+        settingsRemoveHiddenTextCheckBox.setText("Remove hidden anti-piracy text");
+        settingsRemoveHiddenTextCheckBox.setToolTipText("Remove text the site hides from its readers with CSS, e.g. notices against copying, instead of keeping it in the book");
+        settingsNovelPanel.add(settingsRemoveHiddenTextCheckBox, new GridConstraints(4, 3, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(-1, 28), null, 0, false));
         final JLabel label31 = new JLabel();
         label31.setText("Chapter title format");
         label31.setToolTipText("Change the optionally inserted chapter title format ");

@@ -45,6 +45,9 @@ public class Chapter implements Serializable {
             return;
         }
 
+        if (novel.removeHiddenText || Config.getInstance().isRemoveHiddenText()) {
+            HiddenText.remove(chapterContainer);
+        }
         removeUnwantedTags(novel.blacklistedTags);
 
         if (novel.getImages) {

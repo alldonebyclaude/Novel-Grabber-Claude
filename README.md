@@ -59,6 +59,7 @@ Or you can [specify a CSS selector manually](https://github.com/Flameish/Novel-G
 [-displayTitle]| | Write the chapter title at the top of each chapter text.
 [-invertOrder] | | Invert the chapter order.
 [-chapterFiles] | | Also save each chapter as its own Markdown file (`0001 - <chapter>.md`) in a `<title> (chapters)` folder, e.g. for translating.
+[-removeHiddenText] | | Remove text the site hides from its readers with CSS, such as anti-piracy notices. Off by default.
 -help | | Shows the help page.
 
 Example: 

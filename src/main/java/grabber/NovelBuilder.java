@@ -84,6 +84,9 @@ public class NovelBuilder {
         if(params.containsKey("chapterFiles")) {
             novel.chapterFiles = true;
         }
+        if(params.containsKey("removeHiddenText")) {
+            novel.removeHiddenText = true;
+        }
         if(params.containsKey("login")) {
             novel.useAccount = true;
         }
